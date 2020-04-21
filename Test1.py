@@ -38,6 +38,7 @@ class Tank(object):
         self.rect = pg.Rect(32, 32, 16, 16)
         self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
         self.angle = 45
+        self.shootingVector = (int(math.sin(-self.angle)*150), int(math.cos(-self.angle)*150))
         self.shell = Shell()
 
     def move(self, dx, dy):
@@ -52,35 +53,46 @@ class Tank(object):
         self.rect.x += dx
         self.rect.y += dy
         self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
+        self.shootingVector = (int(math.sin(-self.angle)*150), int(math.cos(-self.angle)*150))
 
     def getCoords(self):
         return (self.rect.x,self.rect.y)
 
     def fireShell(self):
+        self.shell.directionVector = self.shootingVector
+        self.shell.rect = pg.Rect(self.rect.x,self.rect.y,10,10)
         self.shellInAir = True
 
     def shellFiring(self, frame):
-        if frame == 60:
+        if self.shell.collided:
             self.shellInAir = False
         if self.shellInAir:
-            explosion_tank(self.getCoords(), frame)
+            #explosion_tank(self.getCoords(), frame)
+            pass
 
     def draw(self, display):
         pg.draw.rect(display, (255, 200, 0), player.rect)
         if self.shellInAir:
             self.shell.draw(display)
         else:
-            pg.draw.line(display, (255, 50, 0), player.getCoords(), (player.getCoords()[0]+int(math.sin(-self.angle)*150), player.getCoords()[1]+int(math.cos(-self.angle)*150)))
-        print(player.getCoords()[0]+int(math.sin(self.angle)/50), player.getCoords()[1]+int(math.cos(self.angle)/50))
+            pg.draw.line(display, (255, 50, 0), (self.rect.x, self.rect.y),(self.rect.x+self.shootingVector[0], self.rect.y+self.shootingVector[1]))
 
 class Shell(object):
     def __init__(self):
-        self.rect = pg.Rect(32, 32, 16, 16)
+        self.rect = pg.Rect(0,0,0,0)
         self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
-        self.directionVector = (0,0)
+        self.directionVector = (0, 0)
+        self.collided = False
 
     def draw(self,display):
-        pg.draw.rect(display, (155, 100, 0), player.rect)
+        self.move()
+        pg.draw.rect(display, (155, 100, 0), self.rect)
+
+    def move(self):
+        print(self.rect)
+        self.rect.x = self.rect.x + int(self.directionVector[0]/10)
+        self.rect.y = self.rect.y + int(self.directionVector[1]/10)
+        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
 
 
 
@@ -138,7 +150,7 @@ expl_sound = pg.mixer.Sound("sound/läsch_explosion.wav")
 def explosion_tank(coords, frame):
     global dead
     dead = False
-    expl_sound.play()
+    #expl_sound.play()
     #clock.tick(1)
     display.blit(expl[int(frame/8)], (coords[0] - 140, coords[1] - 140))
 
@@ -186,11 +198,11 @@ while True:
         player.angle = player.angle - 0.1
     if key[pg.K_DOWN] :
         player.angle = player.angle + 0.1
-    player.move(0, 200)
     if key[pg.K_SPACE] and not player.shellInAir:
         player.fireShell()
         frameCounterForAnimations = 0
 
+    player.move(0,100)
     while Polygon(map.polygon).intersects(Polygon(player.polygon)):
         player.move(0, -1)
 
