@@ -3,6 +3,7 @@ from os import listdir
 from os.path import isfile, join
 
 import pygame as pg
+import pygame.gfxdraw
 from pygame.locals import *
 
 import my_color as c
@@ -21,13 +22,59 @@ display = pg.display.set_mode((displaywidth, displayheigth), displayflags, displ
 clock = pg.time.Clock()
 
 
-def mapdraw():
-    display.fill(c.cyan)
-
-    pg.draw.rect(display, c.khaki, (0, displayheigth - 100, displaywidth, 100))
 
 
-mapdraw()
+class Tank(object):
+
+  '''
+  Mock
+  '''
+
+  def __init__(self):
+    self.rect = pg.Rect(32, 32, 16, 16)
+
+  def move(self, dx, dy):
+    # Move each axis separately. Note that this checks for collisions both times.
+    if dx != 0:
+      self.move_single_axis(dx, 0)
+    if dy != 0:
+      self.move_single_axis(0, dy)
+
+  def move_single_axis(self, dx, dy):
+    # Move the rect
+    self.rect.x += dx
+    self.rect.y += dy
+
+class Map(object):
+
+    '''
+    Placeholder
+    '''
+    def __init__(self):
+        self.polygon = createMap(960,540)
+
+    def draw(self,display):
+        pg.gfxdraw.filled_polygon(display, map.polygon, (255, 255, 255))
+
+
+
+
+def createMap(width,height):
+  '''
+  Placeholder
+  :param width: Die Breite der Map die herzutellen ist
+  :param height: Die Höhe der Map die herzutellen ist
+  :return: ein Array aus Tpeln die den Koordinaten des Polygons der Map entpsrechen
+  '''
+  map = [(0,height)]
+  spacing = 10
+  for i in range(0,spacing+1):
+    print(i)
+    map.append((int(i * width/spacing), random.randint(int(height/3), int(height*2/3))))
+  map.append((width, height))
+  print(map)
+  return map
+
 beta = 65
 v_0 = 75
 
@@ -93,13 +140,13 @@ def explosion_tank(x_cor=400, y_cor=400):
     expl_sound.play()
     clock.tick(1)
     for i in range(8):
-        mapdraw()
+        map.draw(display)
         display.blit(expl[i], (x_cor - 140, y_cor - 140))
 
         clock.tick(10)
         pg.display.update()
 
-    mapdraw()
+    map.draw(display)
 
 
 # __________________________________________________
@@ -122,14 +169,21 @@ first = True
 dead = True
 x = 0
 angle = 0
+
+map = Map()
+player = Tank()
+
 # Spielschleife
 while True:
-
     for event in pg.event.get():
         if event.type == QUIT:
             pg.quit()
             quit()
-    mapdraw()
+
+    display.fill((0, 0, 0))
+    map.draw(display)
+    pg.draw.rect(display, (255, 200, 0), player.rect)
+    pg.display.flip()
 
     """
     if angle == 359:
@@ -147,8 +201,13 @@ while True:
         first = False
         prev_x, prev_y = x, y
         continue
-    
-    
+
+    key = pg.key.get_pressed()
+    if key[pg.K_LEFT]:
+        player.move(-2, 0)
+    if key[pg.K_RIGHT]:
+        player.move(2, 0)
+
     if y < 500 or x < 100:
         pg.draw.circle(display, c.cyan, (int(prev_x), int(prev_y)), 5)
 
@@ -165,3 +224,14 @@ while True:
 
     pg.display.update()
     clock.tick(15)
+
+
+background_colour = (0,200,255)
+(width, height) = (960, 540)
+pygame.init()
+
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption('Tutorial 1')
+screen.fill(background_colour)
+
+
