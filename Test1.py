@@ -106,7 +106,7 @@ def explosion_tank(x_cor=400, y_cor=400):
 
 
 bullet = pg.Rect(300, 100, 80, 80)
-b_image = pg.image.load("pics/Effects/Heavy_Shell.png")
+b_image = pg.image.load("pics/Heavy_Shell.png")
 b_s_image = pg.transform.scale(b_image, (80, 80))
 
 
