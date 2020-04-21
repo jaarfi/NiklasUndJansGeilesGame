@@ -37,6 +37,8 @@ class Tank(object):
         self.shellInAir = False
         self.rect = pg.Rect(32, 32, 16, 16)
         self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
+        self.angle = 45
+        self.shell = Shell()
 
     def move(self, dx, dy):
         # Move each axis separately. Note that this checks for collisions both times.
@@ -63,6 +65,24 @@ class Tank(object):
         if self.shellInAir:
             explosion_tank(self.getCoords(), frame)
 
+    def draw(self, display):
+        pg.draw.rect(display, (255, 200, 0), player.rect)
+        if self.shellInAir:
+            self.shell.draw(display)
+        else:
+            pg.draw.line(display, (255, 50, 0), player.getCoords(), (player.getCoords()[0]+int(math.sin(-self.angle)*150), player.getCoords()[1]+int(math.cos(-self.angle)*150)))
+        print(player.getCoords()[0]+int(math.sin(self.angle)/50), player.getCoords()[1]+int(math.cos(self.angle)/50))
+
+class Shell(object):
+    def __init__(self):
+        self.rect = pg.Rect(32, 32, 16, 16)
+        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
+        self.directionVector = (0,0)
+
+    def draw(self,display):
+        pg.draw.rect(display, (155, 100, 0), player.rect)
+
+
 
 class Map(object):
 
@@ -88,7 +108,7 @@ def createMap(width,height):
   map = [(0,height)]
   spacing = 10
   for i in range(0,spacing+1):
-    map.append((int(i * width/spacing), random.randint(int(height/3), int(height*2/3))))
+    map.append((int(i * width/spacing), random.randint(int(height/2), int(height*4/6))))
   map.append((width, height))
   return map
 
@@ -100,42 +120,6 @@ def parabola(beth, v0, x_value):
     y_value = -math.tan(math.radians(beth)) * x_value + (9.81 * x_value ** 2) / (
             2 * (v0 * 100) * (math.cos(math.radians(beth)) ** 2)) + 500
     return int(y_value)
-
-
-def multV_0():
-    for v0 in range(10, 100, 10):
-
-        pr_x, pr_y = 0, 0
-        fi = True
-
-        for x in range(displaywidth):
-            y = parabola(beta, v0, x)
-
-            if fi:
-                fi = False
-                pr_x, pr_y = x, y
-                continue
-
-            pg.draw.line(display, c.dark_orange, (pr_x, pr_y), (int(x), int(y)), 2)
-            pr_x, pr_y = x, y
-
-
-def multBeta():
-    for b in range(10, 80, 10):
-
-        pre_x, pre_y = 0, 0
-        firs = True
-
-        for x in range(displaywidth):
-            y = parabola(b, v_0, x)
-
-            if firs:
-                firs = False
-                pre_x, pre_y = x, y
-                continue
-
-            pg.draw.line(display, c.dark_grey, (pre_x, pre_y), (int(x), int(y)), 2)
-            pre_x, pre_y = x, y
 
 
 # _________________________________________________
@@ -154,9 +138,8 @@ expl_sound = pg.mixer.Sound("sound/läsch_explosion.wav")
 def explosion_tank(coords, frame):
     global dead
     dead = False
-    # expl_sound.play()
-    # clock.tick(1)
-    print(frame)
+    expl_sound.play()
+    #clock.tick(1)
     display.blit(expl[int(frame/8)], (coords[0] - 140, coords[1] - 140))
 
 
@@ -195,18 +178,21 @@ while True:
         frameCounterForAnimations += 1
 
     key = pg.key.get_pressed()
-    if key[pg.K_LEFT]:
+    if key[pg.K_LEFT] and player.getCoords()[0] > 2:
         player.move(-2, 0)
-    if key[pg.K_RIGHT]:
+    if key[pg.K_RIGHT] and player.getCoords()[0] < displaywidth - 18:
         player.move(2, 0)
+    if key[pg.K_UP] :
+        player.angle = player.angle - 0.1
+    if key[pg.K_DOWN] :
+        player.angle = player.angle + 0.1
     player.move(0, 200)
-    if key[pg.K_SPACE]:
+    if key[pg.K_SPACE] and not player.shellInAir:
         player.fireShell()
         frameCounterForAnimations = 0
 
-    print(Polygon(player.polygon))
-    while(Polygon(map.polygon).intersects(Polygon(player.polygon))):
-        player.move(0,-1)
+    while Polygon(map.polygon).intersects(Polygon(player.polygon)):
+        player.move(0, -1)
 
     for event in pg.event.get():
         if event.type == QUIT:
@@ -215,11 +201,11 @@ while True:
 
     display.fill((0, 0, 0))
     map.draw(display)
-    pg.draw.rect(display, (255, 200, 0), player.rect)
+    player.draw(display)
 
 
     player.shellFiring(frameCounterForAnimations)
-    """
+    '''
     if angle == 359:
         angle = 0
         bs_image = pg.transform.rotate(b_s_image, angle)
@@ -227,15 +213,15 @@ while True:
         bs_image = pg.transform.rotate(b_s_image, angle)
         angle += 1
     display.blit(bs_image, bullet)
- """
-    y = parabola(beta, v_0, x) + 20
 
+    y = parabola(beta, v_0, x) + 20
+    ''
     # ____________line zeichnen__________
     if first:
         first = False
         prev_x, prev_y = x, y
         continue
-
+    '''
 
     pg.display.flip()
     clock.tick(60)
