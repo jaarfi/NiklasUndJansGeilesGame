@@ -26,24 +26,28 @@ clock = pg.time.Clock()
 
 class Tank(object):
 
-  '''
-  Mock
-  '''
+    '''
+    Mock
+    '''
 
-  def __init__(self):
-    self.rect = pg.Rect(32, 32, 16, 16)
+    def __init__(self):
+        self.rect = pg.Rect(32, 32, 16, 16)
 
-  def move(self, dx, dy):
-    # Move each axis separately. Note that this checks for collisions both times.
-    if dx != 0:
-      self.move_single_axis(dx, 0)
-    if dy != 0:
-      self.move_single_axis(0, dy)
+    def move(self, dx, dy):
+        # Move each axis separately. Note that this checks for collisions both times.
+        if dx != 0:
+            self.move_single_axis(dx, 0)
+        if dy != 0:
+            self.move_single_axis(0, dy)
 
-  def move_single_axis(self, dx, dy):
-    # Move the rect
-    self.rect.x += dx
-    self.rect.y += dy
+    def move_single_axis(self, dx, dy):
+        # Move the rect
+        self.rect.x += dx
+        self.rect.y += dy
+
+    def getCoords(self):
+        return (self.rect.x,self.rect.y)
+
 
 class Map(object):
 
@@ -62,17 +66,15 @@ class Map(object):
 def createMap(width,height):
   '''
   Placeholder
-  :param width: Die Breite der Map die herzutellen ist
-  :param height: Die Höhe der Map die herzutellen ist
-  :return: ein Array aus Tpeln die den Koordinaten des Polygons der Map entpsrechen
+  :param width: Die Breite der Map die herzustellen ist
+  :param height: Die Höhe der Map die herzustellen ist
+  :return: ein Array aus Tupeln, die den Koordinaten des Polygons der Map entsprechen
   '''
   map = [(0,height)]
   spacing = 10
   for i in range(0,spacing+1):
-    print(i)
     map.append((int(i * width/spacing), random.randint(int(height/3), int(height*2/3))))
   map.append((width, height))
-  print(map)
   return map
 
 beta = 65
@@ -134,14 +136,14 @@ for myfile in only_files:
 expl_sound = pg.mixer.Sound("sound/läsch_explosion.wav")
 
 
-def explosion_tank(x_cor=400, y_cor=400):
+def explosion_tank(coords):
     global dead
     dead = False
-    expl_sound.play()
-    clock.tick(1)
+    #expl_sound.play()
+    #clock.tick(1)
     for i in range(8):
         map.draw(display)
-        display.blit(expl[i], (x_cor - 140, y_cor - 140))
+        display.blit(expl[i], (coords[0] - 140, coords[1] - 140))
 
         clock.tick(10)
         pg.display.update()
@@ -175,6 +177,15 @@ player = Tank()
 
 # Spielschleife
 while True:
+
+    key = pg.key.get_pressed()
+    if key[pg.K_LEFT]:
+        player.move(-2, 0)
+    if key[pg.K_RIGHT]:
+        player.move(2, 0)
+    if key[pg.K_SPACE]:
+        explosion_tank(player.getCoords())
+
     for event in pg.event.get():
         if event.type == QUIT:
             pg.quit()
@@ -183,7 +194,6 @@ while True:
     display.fill((0, 0, 0))
     map.draw(display)
     pg.draw.rect(display, (255, 200, 0), player.rect)
-    pg.display.flip()
 
     """
     if angle == 359:
@@ -202,12 +212,10 @@ while True:
         prev_x, prev_y = x, y
         continue
 
-    key = pg.key.get_pressed()
-    if key[pg.K_LEFT]:
-        player.move(-2, 0)
-    if key[pg.K_RIGHT]:
-        player.move(2, 0)
 
+    pg.display.flip()
+    clock.tick(60)
+'''
     if y < 500 or x < 100:
         pg.draw.circle(display, c.cyan, (int(prev_x), int(prev_y)), 5)
 
@@ -221,17 +229,7 @@ while True:
 
     # explosion
         explosion_tank()
+'''
 
-    pg.display.update()
-    clock.tick(15)
-
-
-background_colour = (0,200,255)
-(width, height) = (960, 540)
-pygame.init()
-
-screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption('Tutorial 1')
-screen.fill(background_colour)
 
 
