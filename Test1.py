@@ -1,6 +1,8 @@
 import os, math, time, random
 from os import listdir
 from os.path import isfile, join
+from shapely.geometry import Polygon
+
 
 import pygame as pg
 import pygame.gfxdraw
@@ -34,6 +36,7 @@ class Tank(object):
     def __init__(self):
         self.shellInAir = False
         self.rect = pg.Rect(32, 32, 16, 16)
+        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
 
     def move(self, dx, dy):
         # Move each axis separately. Note that this checks for collisions both times.
@@ -46,6 +49,7 @@ class Tank(object):
         # Move the rect
         self.rect.x += dx
         self.rect.y += dy
+        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
 
     def getCoords(self):
         return (self.rect.x,self.rect.y)
@@ -195,10 +199,14 @@ while True:
         player.move(-2, 0)
     if key[pg.K_RIGHT]:
         player.move(2, 0)
+    player.move(0, 200)
     if key[pg.K_SPACE]:
         player.fireShell()
         frameCounterForAnimations = 0
 
+    print(Polygon(player.polygon))
+    while(Polygon(map.polygon).intersects(Polygon(player.polygon))):
+        player.move(0,-1)
 
     for event in pg.event.get():
         if event.type == QUIT:
