@@ -51,7 +51,7 @@ class Map(object):
     Placeholder
     '''
     def __init__(self):
-        self.polygon = createMap(960,540)
+        self.polygon = createMap(displaywidth,displayheigth)
 
     def draw(self,display):
         pg.gfxdraw.filled_polygon(display, map.polygon, (255, 255, 255))
