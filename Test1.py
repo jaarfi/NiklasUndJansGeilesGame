@@ -18,6 +18,7 @@ displayheigth = 600
 displayflags = 0
 displaycolbit = 32
 
+
 display = pg.display.set_mode((displaywidth, displayheigth), displayflags, displaycolbit)
 clock = pg.time.Clock()
 
@@ -31,6 +32,7 @@ class Tank(object):
     '''
 
     def __init__(self):
+        self.shellInAir = False
         self.rect = pg.Rect(32, 32, 16, 16)
 
     def move(self, dx, dy):
@@ -47,6 +49,15 @@ class Tank(object):
 
     def getCoords(self):
         return (self.rect.x,self.rect.y)
+
+    def fireShell(self):
+        self.shellInAir = True
+
+    def shellFiring(self, frame):
+        if frame == 60:
+            self.shellInAir = False
+        if self.shellInAir:
+            explosion_tank(self.getCoords(), frame)
 
 
 class Map(object):
@@ -136,19 +147,14 @@ for myfile in only_files:
 expl_sound = pg.mixer.Sound("sound/läsch_explosion.wav")
 
 
-def explosion_tank(coords):
+def explosion_tank(coords, frame):
     global dead
     dead = False
-    #expl_sound.play()
-    #clock.tick(1)
-    for i in range(8):
-        map.draw(display)
-        display.blit(expl[i], (coords[0] - 140, coords[1] - 140))
+    # expl_sound.play()
+    # clock.tick(1)
+    print(frame)
+    display.blit(expl[int(frame/8)], (coords[0] - 140, coords[1] - 140))
 
-        clock.tick(10)
-        pg.display.update()
-
-    map.draw(display)
 
 
 # __________________________________________________
@@ -174,9 +180,15 @@ angle = 0
 
 map = Map()
 player = Tank()
+frameCounterForAnimations = 0
 
 # Spielschleife
 while True:
+
+    if frameCounterForAnimations == 60:
+        frameCounterForAnimations = 0
+    else:
+        frameCounterForAnimations += 1
 
     key = pg.key.get_pressed()
     if key[pg.K_LEFT]:
@@ -184,7 +196,9 @@ while True:
     if key[pg.K_RIGHT]:
         player.move(2, 0)
     if key[pg.K_SPACE]:
-        explosion_tank(player.getCoords())
+        player.fireShell()
+        frameCounterForAnimations = 0
+
 
     for event in pg.event.get():
         if event.type == QUIT:
@@ -195,6 +209,8 @@ while True:
     map.draw(display)
     pg.draw.rect(display, (255, 200, 0), player.rect)
 
+
+    player.shellFiring(frameCounterForAnimations)
     """
     if angle == 359:
         angle = 0
