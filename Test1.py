@@ -37,7 +37,7 @@ class Tank(object):
 
     def __init__(self):
         self.shellInAir = False
-        self.rect = pg.Rect(32, 32, 16, 16)
+        self.rect = pg.Rect(32, 32, 50, 30)
         self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
         self.angle = 45
         self.shootingVector = (int(math.sin(-self.angle)*150), int(math.cos(-self.angle)*150))
@@ -70,7 +70,8 @@ class Tank(object):
             pass
 
     def draw(self, display):
-        pg.draw.rect(display, (255, 200, 0), player.rect)
+        print(self)
+        pg.draw.rect(display, (255, 200, 0), self.rect)
         self.shell.draw(display)
         if self.shell.state == shellStates.IDLE:
             pg.draw.line(display, (255, 50, 0), (self.rect.x, self.rect.y),(self.rect.x+self.shootingVector[0], self.rect.y+self.shootingVector[1]))
@@ -205,7 +206,11 @@ x = 0
 angle = 0
 
 map = Map()
-player = Tank()
+players = []
+players.append(Tank())
+players[0].move(100,100)
+players.append(Tank())
+
 frameCounterForAnimations = 0
 
 # Spielschleife
@@ -217,21 +222,24 @@ while True:
         frameCounterForAnimations += 1
 
     key = pg.key.get_pressed()
-    if key[pg.K_LEFT] and player.getCoords()[0] > 2:
-        player.move(-2, 0)
-    if key[pg.K_RIGHT] and player.getCoords()[0] < displaywidth - 18:
-        player.move(2, 0)
+    if key[pg.K_LEFT] and players[0].getCoords()[0] > 2:
+        players[0].move(-2, 0)
+    if key[pg.K_RIGHT] and players[0].getCoords()[0] < displaywidth - 18:
+        players[0].move(2, 0)
     if key[pg.K_UP] :
-        player.angle = player.angle - 0.1
+        players[0].angle = players[0].angle - 0.025
     if key[pg.K_DOWN] :
-        player.angle = player.angle + 0.1
-    if key[pg.K_SPACE] and not player.shellInAir:
-        player.fireShell()
+        players[0].angle = players[0].angle + 0.025
+    if key[pg.K_SPACE] and players[0].shell.state == shellStates.IDLE:
+        players[0].fireShell()
         frameCounterForAnimations = 0
 
-    player.move(0,100)
-    while Polygon(map.polygon).intersects(Polygon(player.polygon)):
-        player.move(0, -1)
+    players[0].move(0, 100)
+    players[1].move(0, 100)
+    while Polygon(map.polygon).intersects(Polygon(players[0].polygon)):
+        players[0].move(0, -1)
+    while Polygon(map.polygon).intersects(Polygon(players[0].polygon)):
+        players[1].move(0, -1)
 
     for event in pg.event.get():
         if event.type == QUIT:
@@ -240,9 +248,11 @@ while True:
 
     display.fill((0, 0, 0))
     map.draw(display)
-    player.draw(display)
+    players[0].draw(display)
+    players[1].draw(display)
 
-    player.firingAnimation(map, frameCounterForAnimations)
+    players[0].firingAnimation(map, frameCounterForAnimations)
+    players[1].firingAnimation(map, frameCounterForAnimations)
     '''
     if angle == 359:
         angle = 0
