@@ -1,4 +1,4 @@
-import os, math, time, random
+import os, math, time, random, enum
 from os import listdir
 from os.path import isfile, join
 from shapely.geometry import Polygon
@@ -20,12 +20,14 @@ displayheigth = 600
 displayflags = 0
 displaycolbit = 32
 
-
 display = pg.display.set_mode((displaywidth, displayheigth), displayflags, displaycolbit)
 clock = pg.time.Clock()
 
 
-
+class shellStates(enum.Enum):
+    IDLE = 1
+    FLYING = 2
+    EXPLODING = 3
 
 class Tank(object):
 
@@ -59,39 +61,60 @@ class Tank(object):
         return (self.rect.x,self.rect.y)
 
     def fireShell(self):
-        self.shell.directionVector = self.shootingVector
-        self.shell.rect = pg.Rect(self.rect.x,self.rect.y,10,10)
-        self.shellInAir = True
+        if self.shell.state == shellStates.IDLE:
+            self.shell.fireShell(self.shootingVector, self.getCoords())
 
-    def shellFiring(self, frame):
-        if self.shell.collided:
-            self.shellInAir = False
-        if self.shellInAir:
-            #explosion_tank(self.getCoords(), frame)
+    def firingAnimation(self, map, frame):
+        self.shell.collisionCheck(map)
+        if self.shell.state == shellStates.FLYING:
             pass
 
     def draw(self, display):
         pg.draw.rect(display, (255, 200, 0), player.rect)
-        if self.shellInAir:
-            self.shell.draw(display)
-        else:
+        self.shell.draw(display)
+        if self.shell.state == shellStates.IDLE:
             pg.draw.line(display, (255, 50, 0), (self.rect.x, self.rect.y),(self.rect.x+self.shootingVector[0], self.rect.y+self.shootingVector[1]))
 
 class Shell(object):
     def __init__(self):
-        self.rect = pg.Rect(0,0,0,0)
-        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
+        self.rect = pg.Rect(-1, -1, 0, 0)
+        self.polygon = [(-1,-1),(-1,-2),(-2,-1)]        #store out of bounds
         self.directionVector = (0, 0)
-        self.collided = False
+        self.state = shellStates.IDLE
+        self.explodeFrameCounter = 0
 
     def draw(self,display):
         self.move()
-        pg.draw.rect(display, (155, 100, 0), self.rect)
+        if (self.state == shellStates.FLYING):
+            pg.draw.rect(display, (155, 100, 0), self.rect)
+        elif (self.state == shellStates.EXPLODING):
+            self.explodeFrameCounter = self.explodeFrameCounter + 1
+            if explosion_tank(self.rect.center,self.explodeFrameCounter):
+                self.state = shellStates.IDLE
+                self.move((-1,-1))
+                self.explodeFrameCounter = 0
 
-    def move(self):
-        print(self.rect)
-        self.rect.x = self.rect.x + int(self.directionVector[0]/10)
-        self.rect.y = self.rect.y + int(self.directionVector[1]/10)
+
+    def move(self, coords=(0,0)):
+        if self.state == shellStates.FLYING:
+            if coords == (0,0):
+                self.rect.x = self.rect.x + int(self.directionVector[0]/10)
+                self.rect.y = self.rect.y + int(self.directionVector[1]/10)
+                self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
+        elif coords != (0,0):
+            self.rect.x = coords[0]
+            self.rect.y = coords[1]
+            self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
+
+        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
+    def collisionCheck(self,map):
+        if Polygon(self.polygon).intersects(Polygon(map.polygon)):
+            self.state=shellStates.EXPLODING
+
+    def fireShell(self, shootingVector, startpoint):
+        self.directionVector = shootingVector
+        self.rect = pg.Rect(startpoint[0], startpoint[1], 10, 10)
+        self.state = shellStates.FLYING
         self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
 
 
@@ -152,7 +175,11 @@ def explosion_tank(coords, frame):
     dead = False
     #expl_sound.play()
     #clock.tick(1)
-    display.blit(expl[int(frame/8)], (coords[0] - 140, coords[1] - 140))
+    print(frame)
+    if len(expl)==int(frame/len(expl)):
+        return True
+    display.blit(expl[int(frame/len(expl))], (coords[0] - 140, coords[1] - 140))
+    return False
 
 
 
@@ -215,8 +242,7 @@ while True:
     map.draw(display)
     player.draw(display)
 
-
-    player.shellFiring(frameCounterForAnimations)
+    player.firingAnimation(map, frameCounterForAnimations)
     '''
     if angle == 359:
         angle = 0
