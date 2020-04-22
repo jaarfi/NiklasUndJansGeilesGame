@@ -109,7 +109,6 @@ class Shell(object):
         self.directionVector = (0, 0)
         self.state = shellStates.IDLE
         self.explodeFrameCounter = 0
-        self.dy = -4
 
     def draw(self,display):
         self.move()
@@ -125,10 +124,10 @@ class Shell(object):
     def move(self, coords=(0, 0)):
         if self.state == shellStates.FLYING:
             if coords == (0,0):
-                self.rect.x = self.rect.x + int(self.directionVector[0]/10)
-                self.rect.y = self.rect.y + int(self.directionVector[1]/10) + self.dy
+                self.rect.x = self.rect.x + int(self.directionVector[0]/15)
+                self.rect.y = self.rect.y + int(self.directionVector[1]/15)
                 self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
-                self.dy = self.dy + 1
+                self.directionVector = (self.directionVector[0],self.directionVector[1] + 5)
         elif coords != (0,0):
             self.rect.x = coords[0]
             self.rect.y = coords[1]
@@ -141,7 +140,7 @@ class Shell(object):
             for collision in listOfObjects:
                 if Polygon(self.polygon).intersects(Polygon(collision.polygon)):
                     self.dy = -4
-                    self.state=shellStates.EXPLODING#
+                    self.state=shellStates.EXPLODING
                     collision.hit()
 
     def fireShell(self, shootingVector, startpoint):
