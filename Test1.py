@@ -1,5 +1,6 @@
 import os, math, time, random, enum
 import numpy as np
+from shapely import affinity
 from os import listdir
 from os.path import isfile, join
 from shapely.geometry import Polygon
@@ -44,25 +45,47 @@ class Tank(object):
         Initiator der Tank Klasse
         '''
         self.rect = pg.Rect(32, 32, 50, 30)                                                                             #Das Rechteck welches den Panzer präsentiert
-        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]             #Das Polygon, welches dem Rechteck entspricht, wird benötigt zur Kollisionsberechnung
+        self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])             #Das Polygon, welches dem Rechteck entspricht, wird benötigt zur Kollisionsberechnung
         self.angle = 45                                                                                                 #Der Abschusswinkel
         self.shootingVector = (int(math.sin(-self.angle)*150), int(math.cos(-self.angle)*150))                          #Der Vektor, in welchem die Shell losgeschossen werden soll. Wird auch zur Zielanzeige verwendet
         self.shell = Shell()                                                                                            #Jeder Tank hat eine Shell. Diese wird später unterschiedliche Typen annehmen können (Spread, Fire.. ?)
-        self.life = 100                                                                                                 #Die aktullen Hitpoint die der Tank noch hat
-        self.color =  list(np.random.random(3) * 256)                                                                   #Dem Tank wird eine zufällige Farbe zugewiesen, um die spieler auseinander zu halten
+        self.life = 100                                                                                                 #Die aktuellen Hitpoint die der Tank noch hat
+        self.color = list(np.random.random(3) * 256)                                                                   #Dem Tank wird eine zufällige Farbe zugewiesen, um die spieler auseinander zu halten
+        self.dx = 0
+        self.dy = 0
+        self.da = 0
 
-    def move(self, dx, dy):
+    def premove(self, key):
+        if key[pg.K_LEFT] and self.getCoords()[0] > 2:
+            self.dx = self.dx - 2
+        if key[pg.K_RIGHT] and players[0].getCoords()[0] < displaywidth - 18:
+            self.dx = self.dx + 2
+        if key[pg.K_UP]:
+            self.da = self.da - 0.025
+        if key[pg.K_DOWN]:
+            self.da = self.da + 0.025
+        if key[pg.K_SPACE] and self.shell.state == shellStates.IDLE:
+            self.fireShell()
+
+    def move(self, map):
         '''
         Bewegt den Panzer um die dx in der horizontalen Ebene und nach dy in der Vertikalen
         :param dx: Horizontale Bewegung
         :param dy: Vertikale Bewegung
+        :param map: Der Untergrund auf dem sich der Panzer bewegen soll
         :return: None
         '''
-        self.rect.x += dx
-        self.rect.y += dy
-        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]             #Das Polygon besteht aus den Ecken des Rechtecks und muss bei jeder Bewegung geupdatet werden
+        self.rect.x += self.dx
+        self.rect.y = displayheigth
+        self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])
+        while self.polygon.intersects(map.polygon):
+            self.rect.y -= 1
+            self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])  # Das Polygon besteht aus den Ecken des Rechtecks und muss bei jeder Bewegung geupdatet werden
+        self.angle += self.da
         #TODO AUSLAGERN
         self.shootingVector = (int(math.sin(-self.angle) * 150), int(math.cos(-self.angle) * 150))                      #Der Vektor muss regelmäßig geupdatet werden, hier macht es momentan am meisten sinn
+        self.dx = 0
+        self.da = 0
 
     def getCoords(self):
         '''
@@ -116,12 +139,13 @@ class Shell(object):
         '''
         Initiator der Shell Klasse
         '''
-        #Viele der Attribute benötigen einen Startwert und können nicht mit 0 initialisiert werden
+        #Viele der Attribut benötigen einen Startwert und können nicht mit 0 initialisiert werden
         self.rect = pg.Rect(-1, -1, 0, 0)                                                                               #Das Rechteck der Shell wird auserhalb der Map erstellt, um nicht mit etwas zu kollidieren und da man die genauen Koordinaten noch nicht weis
-        self.polygon = [(-1,-1),(-1,-2),(-2,-1)]                                                                        #Auch das Polygon der Shell wird mit Werten initialisiert, die während des Spieles nicht auftreten
+        self.polygon = Polygon([(-1,-1),(-1,-2),(-2,-1)])                                                               #Auch das Polygon der Shell wird mit Werten initialisiert, die während des Spieles nicht auftreten
         self.directionVector = (0, 0)
         self.state = shellStates.IDLE                                                                                   #Bei Generierung der Shell sit sie Idle, da sie noch vor dem Feuern generiert wird
         self.explodeFrameCounter = 0                                                                                    #Der Framecounter iwrd benötigt, um die Explosion richtig abzuspielen
+
 
     def draw(self,display):
         '''
@@ -139,6 +163,7 @@ class Shell(object):
                 self.move((-1,-1))
                 self.explodeFrameCounter = 0
 
+
     def move(self, coords=(0, 0)):
         '''
         Bewegt die Shell um ihren eigens berechneten Wert. Werden Koordinaten angebeben, wird sie an die Stelle teleportiert
@@ -149,12 +174,12 @@ class Shell(object):
             if coords == (0,0):
                 self.rect.x = self.rect.x + int(self.directionVector[0]/15)
                 self.rect.y = self.rect.y + int(self.directionVector[1]/15)
-                self.directionVector = (self.directionVector[0],self.directionVector[1] + 5)                            #Der Y-Teil des Richtungvektors wird neu berechnet, um der Shell einen Parabelflug zu ermöglichen
+                self.directionVector = (self.directionVector[0], self.directionVector[1] + 5)                            #Der Y-Teil des Richtungvektors wird neu berechnet, um der Shell einen Parabelflug zu ermöglichen
         elif coords != (0,0):                                                                                           #Teleportation bei Angabe von Koordinaten
             self.rect.x = coords[0]
             self.rect.y = coords[1]
 
-        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright,self.rect.bottomright]              # Polygon muss geupdatet werden
+        self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright,self.rect.bottomright])              # Polygon muss geupdatet werden
 
     def collisionCheck(self, listOfObjects):
         '''
@@ -164,9 +189,11 @@ class Shell(object):
         '''
         if self.state == shellStates.FLYING:                                                                            #Nur Falls die Shell fliegt kann sie Kollidieren
             for collision in listOfObjects:                                                                             #Für jedes Objekt wird einzeln geprüft
-                if Polygon(self.polygon).intersects(Polygon(collision.polygon)):                                        #Falls es mit dem Objekt kollidiert...
+                if self.polygon.intersects(collision.polygon):                                        #Falls es mit dem Objekt kollidiert...
                     self.state=shellStates.EXPLODING                                                                    #... wrid der State gesetzt...
                     collision.hit()                                                                                     #... und dem Objekt mitgeteilt, dass es getroffen wurde
+            if displaywidth < self.rect.x or self.rect.x < 0:
+                self.state = shellStates.IDLE
 
     def fireShell(self, shootingVector, startpoint):
         '''
@@ -178,7 +205,7 @@ class Shell(object):
         self.directionVector = shootingVector                                                                           #Da die Werte jetzt wichtig sind, werden sie zu den richtigen gesetzt
         self.rect = pg.Rect(startpoint[0], startpoint[1], 10, 10)                                                       #Das Rechtek wird in dem Startpunkt gezeichnet
         self.state = shellStates.FLYING
-        self.polygon = [self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright]
+        self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])
 
 
 
@@ -191,7 +218,7 @@ class Map(object):
         '''
         Initiator der Map
         '''
-        self.polygon = createMap(displaywidth,displayheigth)                                                            #eine externe Funktion wird aufgerufen um die Map zu generieren
+        self.polygon = Polygon(createMap(displaywidth,displayheigth))                                                   #eine externe Funktion wird aufgerufen um die Map zu generieren
 
     def draw(self,display):
         '''
@@ -199,7 +226,7 @@ class Map(object):
         :param display: Das Display auf welches gemalt werden soll
         :return: None
         '''
-        pg.gfxdraw.filled_polygon(display, map.polygon, (255, 255, 255))                                                #Ein großes Polygon wird gezeichnet, welches dem Untergrund enspricht
+        pg.gfxdraw.filled_polygon(display, map.polygon.exterior.coords, (255, 255, 255))                                                #Ein großes Polygon wird gezeichnet, welches dem Untergrund enspricht
 
     def hit(self):                                                                                                      #Muss definiert werden, da Map hittable ist, macht aber nichts
         pass
@@ -261,7 +288,6 @@ def explosion_tank(coords, frame):
     '''
     #expl_sound.play()
     #clock.tick(1)
-    print(frame)
     if len(expl)==int(frame/len(expl)):
         return True
     display.blit(expl[int(frame/len(expl))], (coords[0] - 140, coords[1] - 140))
@@ -293,54 +319,44 @@ angle = 0
 map = Map()
 players = []
 players.append(Tank())
-players[0].move(100,100)
+players[0].move(map)
 players.append(Tank())
 print(players[0]==players[1])
 listOfObjects = []
 listOfObjects.append(map)
 for player in players:
     listOfObjects.append(player)
-frameCounterForAnimations = 0
+frameCounerForPlayerPass = 0
+activePlayer = players[0]
 
 # Spielschleife
 while True:
+    print(frameCounerForPlayerPass)
 
-    if frameCounterForAnimations == 60:
-        frameCounterForAnimations = 0
+    if frameCounerForPlayerPass == 360:
+        frameCounerForPlayerPass = 0
+        if activePlayer == players[0]:
+            activePlayer = players[1]
+        if activePlayer == players[1]:
+            activePlayer = players[0]
     else:
-        frameCounterForAnimations += 1
+        frameCounerForPlayerPass += 1
 
-    key = pg.key.get_pressed()
-    if key[pg.K_LEFT] and players[0].getCoords()[0] > 2:
-        players[0].move(-2, 0)
-    if key[pg.K_RIGHT] and players[0].getCoords()[0] < displaywidth - 18:
-        players[0].move(2, 0)
-    if key[pg.K_UP] :
-        players[0].angle = players[0].angle - 0.025
-    if key[pg.K_DOWN] :
-        players[0].angle = players[0].angle + 0.025
-    if key[pg.K_SPACE] and players[0].shell.state == shellStates.IDLE:
-        players[0].fireShell()
-        frameCounterForAnimations = 0
+    keys = pg.key.get_pressed()
 
-    players[0].move(0, 100)
-    players[1].move(0, 100)
-    while Polygon(map.polygon).intersects(Polygon(players[0].polygon)):
-        players[0].move(0, -1)
-    while Polygon(map.polygon).intersects(Polygon(players[1].polygon)):
-        players[1].move(0, -1)
+    activePlayer.premove(keys)
+    for player in players:
+        player.move(map)
 
     for event in pg.event.get():
         if event.type == QUIT:
             pg.quit()
             quit()
-
     display.fill((0, 0, 0))
     drawAllObjects(listOfObjects, display)
-    print("\n")
+    pg.draw.circle(display, (255,255,0),(60,600),15,5)
 
-    players[0].firingAnimation(listOfObjects)
-    players[1].firingAnimation(listOfObjects)
+    activePlayer.firingAnimation(listOfObjects)
     '''
     if angle == 359:
         angle = 0
