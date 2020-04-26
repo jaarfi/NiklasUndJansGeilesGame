@@ -4,13 +4,12 @@ from shapely import affinity
 from os import listdir
 from os.path import isfile, join
 from shapely.geometry import Polygon
-
+from NiklasUndJansGeilesGame import my_color as c
 
 import pygame as pg
 import pygame.gfxdraw
 from pygame.locals import *
 
-import my_color as c
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 
@@ -175,7 +174,7 @@ class Shell(object):
                 self.rect.x = self.rect.x + int(self.directionVector[0]/15)
                 self.rect.y = self.rect.y + int(self.directionVector[1]/15)
                 self.directionVector = (self.directionVector[0], self.directionVector[1] + 5)                            #Der Y-Teil des Richtungvektors wird neu berechnet, um der Shell einen Parabelflug zu ermöglichen
-        elif coords != (0,0):                                                                                           #Teleportation bei Angabe von Koordinaten
+        elif coords != (0, 0):                                                                                           #Teleportation bei Angabe von Koordinaten
             self.rect.x = coords[0]
             self.rect.y = coords[1]
 
@@ -208,7 +207,6 @@ class Shell(object):
         self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])
 
 
-
 class Map(object):
 
     '''
@@ -220,7 +218,7 @@ class Map(object):
         '''
         self.polygon = Polygon(createMap(displaywidth,displayheigth))                                                   #eine externe Funktion wird aufgerufen um die Map zu generieren
 
-    def draw(self,display):
+    def draw(self, display):
         '''
         Malen der Map
         :param display: Das Display auf welches gemalt werden soll
@@ -288,7 +286,7 @@ def explosion_tank(coords, frame):
     '''
     #expl_sound.play()
     #clock.tick(1)
-    if len(expl)==int(frame/len(expl)):
+    if len(expl) == int(frame/len(expl)):
         return True
     display.blit(expl[int(frame/len(expl))], (coords[0] - 140, coords[1] - 140))
     return False
@@ -297,14 +295,34 @@ def explosion_tank(coords, frame):
 
 # __________________________________________________
 
+def text_objects(text="", font="", color=c.black):
+    textSurface = font.render(text, True, color)
+    return textSurface, textSurface.get_rect()
 
-bullet = pg.Rect(300, 100, 80, 80)
-b_image = pg.image.load("pics/Heavy_Shell.png")
-b_s_image = pg.transform.scale(b_image, (80, 80))
 
+def draw_menu(mouse):
+    display.fill(c.white)
+    global menu
 
-def rotate():
-    pass
+    if ((displaywidth / 2) - 150) < mouse[0] < ((displaywidth / 2) + 150) and ((displayheigth / 2) + 50) < mouse[1] < (
+            (displayheigth / 2) + 100):
+        pg.draw.rect(display, c.green, ((displaywidth / 2) - 150, (displayheigth / 2) + 50, 300, 50))
+        if pg.mouse.get_pressed() == (True, False, False):
+            menu = False
+    else:
+        pg.draw.rect(display, c.dark_green, ((displaywidth / 2) - 150, (displayheigth / 2) + 50, 300, 50))
+
+    # tytel text
+    my_tytel_font = pg.font.Font("freesansbold.ttf", 45)
+    TextSurf, TextRect = text_objects("NiklasUndJansGeilesGame", my_tytel_font)
+    TextRect.center = ((displaywidth / 2), (displayheigth / 2))
+    display.blit(TextSurf, TextRect)
+
+    # box test
+    my_box_font = pg.font.Font("freesansbold.ttf", 20)
+    TextSurf, TextRect = text_objects("start", my_box_font)
+    TextRect.center = ((displaywidth / 2), (displayheigth / 2) + 75)
+    display.blit(TextSurf, TextRect)
 
 
 # ___________________________________________________
@@ -328,70 +346,48 @@ for player in players:
     listOfObjects.append(player)
 frameCounerForPlayerPass = 0
 activePlayer = players[0]
+menu = True
 
 # Spielschleife
 while True:
-    print(frameCounerForPlayerPass)
-
-    if frameCounerForPlayerPass == 360:
-        frameCounerForPlayerPass = 0
-        if activePlayer == players[0]:
-            activePlayer = players[1]
-        if activePlayer == players[1]:
-            activePlayer = players[0]
-    else:
-        frameCounerForPlayerPass += 1
-
-    keys = pg.key.get_pressed()
-
-    activePlayer.premove(keys)
-    for player in players:
-        player.move(map)
-
+    # print(frameCounerForPlayerPass)
     for event in pg.event.get():
         if event.type == QUIT:
             pg.quit()
             quit()
-    display.fill((0, 0, 0))
-    drawAllObjects(listOfObjects, display)
-    pg.draw.circle(display, (255,255,0),(60,600),15,5)
 
-    activePlayer.firingAnimation(listOfObjects)
-    '''
-    if angle == 359:
-        angle = 0
-        bs_image = pg.transform.rotate(b_s_image, angle)
+        if event.type == KEYUP:
+            if event.key == K_ESCAPE:
+                menu = True
+
+    if menu:
+        draw_menu(pg.mouse.get_pos())
     else:
-        bs_image = pg.transform.rotate(b_s_image, angle)
-        angle += 1
-    display.blit(bs_image, bullet)
 
-    y = parabola(beta, v_0, x) + 20
-    ''
-    # ____________line zeichnen__________
-    if first:
-        first = False
-        prev_x, prev_y = x, y
-        continue
-    '''
+        if frameCounerForPlayerPass == 360:
+            frameCounerForPlayerPass = 0
+            if activePlayer == players[0]:
+                activePlayer = players[1]
+            if activePlayer == players[1]:
+                activePlayer = players[0]
+        else:
+            frameCounerForPlayerPass += 1
+
+        keys = pg.key.get_pressed()
+
+        activePlayer.premove(keys)
+        for player in players:
+            player.move(map)
+
+
+        display.fill((0, 0, 0))
+        drawAllObjects(listOfObjects, display)
+        pg.draw.circle(display, c.yellow, (60, 600), 15, 5)
+
+        activePlayer.firingAnimation(listOfObjects)
 
     pg.display.flip()
     clock.tick(60)
-'''
-    if y < 500 or x < 100:
-        pg.draw.circle(display, c.cyan, (int(prev_x), int(prev_y)), 5)
-
-        if int(x) % 15 == 0:
-            pg.draw.circle(display, c.grey, (int(prev_x), int(prev_y)), 2)
-
-        prev_x, prev_y = x, y
-
-        pg.draw.circle(display, c.black, (int(x), int(y)), 5)
-        x += 5
-
-    # explosion
-        explosion_tank()
-'''
 
 
 
