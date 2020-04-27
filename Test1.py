@@ -34,6 +34,10 @@ class shellStates(enum.Enum):
     FLYING = 2
     EXPLODING = 3
 
+class shellTypes(enum.Enum):
+    NORMAL = 1
+    LASER = 2
+
 class Tank(object):
 
     '''
@@ -44,22 +48,22 @@ class Tank(object):
         '''
         Initiator der Tank Klasse
         '''
-        self.rect = pg.Rect(32, 32, 50, 30)                                                                             #Das Rechteck welches den Panzer präsentiert
-        self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])             #Das Polygon, welches dem Rechteck entspricht, wird benötigt zur Kollisionsberechnung
+        #self.rect = pg.Rect(32, 32, 50, 30)                                                                            #Das Rechteck welches den Panzer präsentiert
+        self.polygon = Polygon([(32,32), (32,82), (82,82), (82,32)])                                                    #Das Polygon, welches dem Rechteck entspricht, wird benötigt zur Kollisionsberechnung
         self.angle = 45                                                                                                 #Der Abschusswinkel
         self.shootingVector = (int(math.sin(-self.angle)*150), int(math.cos(-self.angle)*150))                          #Der Vektor, in welchem die Shell losgeschossen werden soll. Wird auch zur Zielanzeige verwendet
         self.shell = Shell()                                                                                            #Jeder Tank hat eine Shell. Diese wird später unterschiedliche Typen annehmen können (Spread, Fire.. ?)
         self.life = 100                                                                                                 #Die aktuellen Hitpoint die der Tank noch hat
-        self.color = list(np.random.random(3) * 256)                                                                   #Dem Tank wird eine zufällige Farbe zugewiesen, um die spieler auseinander zu halten
+        self.color = list(np.random.random(3) * 256)                                                                    #Dem Tank wird eine zufällige Farbe zugewiesen, um die spieler auseinander zu halten
         self.dx = 0
         self.dy = 0
         self.da = 0
 
     def premove(self, key):
         if key[pg.K_LEFT] and self.getCoords()[0] > 2:
-            self.dx = self.dx - 2
+            self.dx = self.dx - 0.02
         if key[pg.K_RIGHT] and players[0].getCoords()[0] < displaywidth - 18:
-            self.dx = self.dx + 2
+            self.dx = self.dx + 0.02
         if key[pg.K_UP]:
             self.da = self.da - 0.025
         if key[pg.K_DOWN]:
@@ -75,12 +79,10 @@ class Tank(object):
         :param map: Der Untergrund auf dem sich der Panzer bewegen soll
         :return: None
         '''
-        self.rect.x += self.dx
-        self.rect.y = displayheigth
-        self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])
+        self.polygon = affinity.translate(self.polygon, self.dx, displayheigth-self.getCoords()[1])
+        #self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])
         while self.polygon.intersects(map.polygon):
-            self.rect.y -= 1
-            self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])  # Das Polygon besteht aus den Ecken des Rechtecks und muss bei jeder Bewegung geupdatet werden
+            self.polygon = affinity.translate(self.polygon, self.dx, -1)
         self.angle += self.da
         #TODO AUSLAGERN
         self.shootingVector = (int(math.sin(-self.angle) * 150), int(math.cos(-self.angle) * 150))                      #Der Vektor muss regelmäßig geupdatet werden, hier macht es momentan am meisten sinn
@@ -91,7 +93,7 @@ class Tank(object):
         '''
         :return: Koordinaten des Mittelpunktes
         '''
-        return (self.rect.center)
+        return (int(list(self.polygon.centroid.coords)[0][0]),int(list(self.polygon.centroid.coords)[0][1]))
 
     def fireShell(self):
         '''
@@ -119,17 +121,19 @@ class Tank(object):
         '''
         self.life = self.life-20                                                                                        #20HP Fix momentan, wird abhängig von Shell sein
 
-    def draw(self, display):
+    def draw(self, display, drawableobjects, frame):
         '''
         Alles was zum Panzer gehört wird gezeichnet
         :param display: Das Display auf welches gezeichnet werden soll
         :return: None
         '''
-        pg.draw.rect(display, self.color, self.rect)                                                                    #Der Spieler Selbst wird gezeichnet
-        pg.draw.line(display, self.color, (self.rect.x, self.rect.center[1]+50), (self.rect.x+self.life, self.rect.center[1]+50), 10) #Die Hp Anzeige zeichnen
-        self.shell.draw(display)                                                                                        #Der Shell sagen, sie soll Zeichnen was sie muss
+        tmpCoords = (int(self.getCoords()[0]), int(self.getCoords()[1]))
+        #pg.draw.rect(display, self.color, self.rect)                                                                    #Der Spieler Selbst wird gezeichnet
+        pg.gfxdraw.filled_polygon(display, self.polygon.exterior.coords, self.color)
+        pg.draw.line(display, self.color, (tmpCoords[0], tmpCoords[1]+50), (tmpCoords[0]+self.life, tmpCoords[1]+50), 10) #Die Hp Anzeige zeichnen
+        self.shell.draw(display,drawableobjects, frame)                                                                                        #Der Shell sagen, sie soll Zeichnen was sie muss
         if self.shell.state == shellStates.IDLE:                                                                        #Falls die Shell Idle ist, man also feuern kann..
-            pg.draw.line(display, (255, 50, 0), self.rect.center,(self.rect.center[0]+self.shootingVector[0], self.rect.center[1]+self.shootingVector[1]))#... wird eine Zielgerade gezeichnet
+            pg.draw.line(display, (255, 50, 0), tmpCoords,(tmpCoords[0]+self.shootingVector[0], tmpCoords[1]+self.shootingVector[1]))#... wird eine Zielgerade gezeichnet
 
 class Shell(object):
     '''
@@ -145,9 +149,11 @@ class Shell(object):
         self.directionVector = (0, 0)
         self.state = shellStates.IDLE                                                                                   #Bei Generierung der Shell sit sie Idle, da sie noch vor dem Feuern generiert wird
         self.explodeFrameCounter = 0                                                                                    #Der Framecounter iwrd benötigt, um die Explosion richtig abzuspielen
+        self.shellType = shellTypes.LASER
+        self.explosions = []
 
 
-    def draw(self,display):
+    def draw(self,display, drawableobjects, frame):
         '''
         Zeichnet die wichtigen Teile der Shell
         :param display: Das Display auf welches gezeichnet wird
@@ -156,12 +162,12 @@ class Shell(object):
         self.move()                                                                                                     #Vor dem Malen wird die Position des Geschosses neu berechnet
         if (self.state == shellStates.FLYING):                                                                          #Die Shell wird nur gezeichnet wenn sie fliegt (Bei IDLE unbenutzt, bei EXPLODING schon kaputt)
             pg.draw.rect(display, (155, 100, 0), self.rect)
-        elif (self.state == shellStates.EXPLODING):                                                                     #Falls die Shell am Explodieren ist muss die Explosionsanimation gezeichnet werden
-            self.explodeFrameCounter = self.explodeFrameCounter + 1                                                     #Der Framecounter zählt hoch. Da draw jeden Frame aufgerufen wird, zählt es jeden seit Explosionsbeginn mit
-            if explosion_tank(self.rect.center, self.explodeFrameCounter):                                              #Die Explosion wird abhängig von den Frames seit Beginn gezeichnet. Da explosion_tank True zurückgibt, falls sie komplett animiert wurde...
-                self.state = shellStates.IDLE                                                                           #... Können die Werte der Shell zurückgesetzt werden, sobald sie voll explodiert ist
-                self.move((-1,-1))
-                self.explodeFrameCounter = 0
+        elif (self.state == shellStates.EXPLODING):
+            for expl in self.explosions:
+                if drawableobjects.__contains__(expl):
+                    pass
+                else:
+                    drawableobjects.append(expl)
 
 
     def move(self, coords=(0, 0)):
@@ -172,9 +178,13 @@ class Shell(object):
         '''
         if self.state == shellStates.FLYING:                                                                            # Falls die Shell am Fliegen ist, berechnet sie ihre Bewegung Selbst
             if coords == (0,0):
-                self.rect.x = self.rect.x + int(self.directionVector[0]/15)
-                self.rect.y = self.rect.y + int(self.directionVector[1]/15)
-                self.directionVector = (self.directionVector[0], self.directionVector[1] + 5)                            #Der Y-Teil des Richtungvektors wird neu berechnet, um der Shell einen Parabelflug zu ermöglichen
+                if self.shellType == shellTypes.NORMAL:
+                    self.rect.x = self.rect.x + int(self.directionVector[0]/15)
+                    self.rect.y = self.rect.y + int(self.directionVector[1]/15)
+                    self.directionVector = (self.directionVector[0], self.directionVector[1] + 5)                            #Der Y-Teil des Richtungvektors wird neu berechnet, um der Shell einen Parabelflug zu ermöglichen
+                if self.shellType == shellTypes.LASER:
+                    self.rect.x = self.rect.x + int(self.directionVector[0]/5)
+                    self.rect.y = self.rect.y + int(self.directionVector[1]/5)
         elif coords != (0,0):                                                                                           #Teleportation bei Angabe von Koordinaten
             self.rect.x = coords[0]
             self.rect.y = coords[1]
@@ -189,8 +199,11 @@ class Shell(object):
         '''
         if self.state == shellStates.FLYING:                                                                            #Nur Falls die Shell fliegt kann sie Kollidieren
             for collision in listOfObjects:                                                                             #Für jedes Objekt wird einzeln geprüft
-                if self.polygon.intersects(collision.polygon):                                        #Falls es mit dem Objekt kollidiert...
-                    self.state=shellStates.EXPLODING                                                                    #... wrid der State gesetzt...
+                if self.polygon.intersects(collision.polygon):                                                          #Falls es mit dem Objekt kollidiert...
+                    self.state = shellStates.EXPLODING                                                                  #... wrid der State gesetzt...
+                    tmpexpl = Explosion()
+                    self.explosions.append(tmpexpl)
+                    tmpexpl.setParameters(self,self.rect.x, self.rect.y)
                     collision.hit()                                                                                     #... und dem Objekt mitgeteilt, dass es getroffen wurde
             if displaywidth < self.rect.x or self.rect.x < 0:
                 self.state = shellStates.IDLE
@@ -202,8 +215,11 @@ class Shell(object):
         :param startpoint: der Startpunkt der Shell
         :return: None
         '''
+        if self.shellType == shellTypes.LASER:
+            self.rect = pg.Rect(startpoint[0], startpoint[1], 3, 3)  # Das Rechtek wird in dem Startpunkt gezeichnet
+        elif self.shellType == shellTypes.NORMAL:
+            self.rect = pg.Rect(startpoint[0], startpoint[1], 10, 10)  # Das Rechtek wird in dem Startpunkt gezeichnet
         self.directionVector = shootingVector                                                                           #Da die Werte jetzt wichtig sind, werden sie zu den richtigen gesetzt
-        self.rect = pg.Rect(startpoint[0], startpoint[1], 10, 10)                                                       #Das Rechtek wird in dem Startpunkt gezeichnet
         self.state = shellStates.FLYING
         self.polygon = Polygon([self.rect.bottomleft, self.rect.topleft, self.rect.topright, self.rect.bottomright])
 
@@ -220,7 +236,7 @@ class Map(object):
         '''
         self.polygon = Polygon(createMap(displaywidth,displayheigth))                                                   #eine externe Funktion wird aufgerufen um die Map zu generieren
 
-    def draw(self,display):
+    def draw(self,display, drawableobjects, frame):
         '''
         Malen der Map
         :param display: Das Display auf welches gemalt werden soll
@@ -231,8 +247,39 @@ class Map(object):
     def hit(self):                                                                                                      #Muss definiert werden, da Map hittable ist, macht aber nichts
         pass
 
+class Explosion(object):
 
-def drawAllObjects(arrayOfObjects, display):
+    def __init__(self):
+        self.daddy = 0
+        self.internalFrame = 0;
+        self.x = 0
+        self.y = 0
+        pass
+
+    def setParameters(self, daddy, x, y):
+        self.daddy = daddy
+        self.x = x
+        self.y = y
+
+    def draw(self, coords, drawableObjects, frame):
+        '''
+        Animation der Explosion
+        :param coords: Die Koordinaten, an welchen Die Epxlosion stattfindet
+        :param frame: Der aktuelle Frame der Animation. Wird benötigt um die Explosion "asynchron" zu malen
+        :return: Boolean: Ist die Explosion beendet?
+        '''
+        # expl_sound.play()
+        # clock.tick(1)
+        if len(expl) == int(self.internalFrame / len(expl)):
+            self.daddy.explosions.remove(self)
+            self.daddy.state = shellStates.IDLE
+            drawableObjects.remove(self)
+            return
+        display.blit(expl[int(self.internalFrame / len(expl))], (self.x - 140, self.y - 140))
+        self.internalFrame += 1
+
+
+def drawAllObjects(arrayOfObjects, display, frame):
     '''
     Ein funktion um das Malen mehrer Objekte zu ermölglichen
     :param arrayOfObjects: Ein Array der Objekte, die zu malen sind. Alle müssen eine .draw() Funktion besitzen
@@ -240,7 +287,7 @@ def drawAllObjects(arrayOfObjects, display):
     :return: None
     '''
     for toDraw in arrayOfObjects:
-        toDraw.draw(display)
+        toDraw.draw(display, arrayOfObjects, frame)
 
 def createMap(width,height):
   '''
@@ -279,19 +326,6 @@ for myfile in only_files:
 expl_sound = pg.mixer.Sound("sound/läsch_explosion.wav")
 
 
-def explosion_tank(coords, frame):
-    '''
-    Animation der Explosion
-    :param coords: Die Koordinaten, an welchen Die Epxlosion stattfindet
-    :param frame: Der aktuelle Frame der Animation. Wird benötigt um die Explosion "asynchron" zu malen
-    :return: Boolean: Ist die Explosion beendet?
-    '''
-    #expl_sound.play()
-    #clock.tick(1)
-    if len(expl)==int(frame/len(expl)):
-        return True
-    display.blit(expl[int(frame/len(expl))], (coords[0] - 140, coords[1] - 140))
-    return False
 
 
 
@@ -326,21 +360,14 @@ listOfObjects = []
 listOfObjects.append(map)
 for player in players:
     listOfObjects.append(player)
-frameCounerForPlayerPass = 0
+frameCounter = 0
 activePlayer = players[0]
 
 # Spielschleife
 while True:
-    print(frameCounerForPlayerPass)
+    #print(frameCounerForPlayerPass)
 
-    if frameCounerForPlayerPass == 360:
-        frameCounerForPlayerPass = 0
-        if activePlayer == players[0]:
-            activePlayer = players[1]
-        if activePlayer == players[1]:
-            activePlayer = players[0]
-    else:
-        frameCounerForPlayerPass += 1
+    frameCounter += 1
 
     keys = pg.key.get_pressed()
 
@@ -353,45 +380,12 @@ while True:
             pg.quit()
             quit()
     display.fill((0, 0, 0))
-    drawAllObjects(listOfObjects, display)
-    pg.draw.circle(display, (255,255,0),(60,600),15,5)
+    drawAllObjects(listOfObjects, display, frameCounter)
 
     activePlayer.firingAnimation(listOfObjects)
-    '''
-    if angle == 359:
-        angle = 0
-        bs_image = pg.transform.rotate(b_s_image, angle)
-    else:
-        bs_image = pg.transform.rotate(b_s_image, angle)
-        angle += 1
-    display.blit(bs_image, bullet)
-
-    y = parabola(beta, v_0, x) + 20
-    ''
-    # ____________line zeichnen__________
-    if first:
-        first = False
-        prev_x, prev_y = x, y
-        continue
-    '''
 
     pg.display.flip()
     clock.tick(60)
-'''
-    if y < 500 or x < 100:
-        pg.draw.circle(display, c.cyan, (int(prev_x), int(prev_y)), 5)
-
-        if int(x) % 15 == 0:
-            pg.draw.circle(display, c.grey, (int(prev_x), int(prev_y)), 2)
-
-        prev_x, prev_y = x, y
-
-        pg.draw.circle(display, c.black, (int(x), int(y)), 5)
-        x += 5
-
-    # explosion
-        explosion_tank()
-'''
 
 
 
