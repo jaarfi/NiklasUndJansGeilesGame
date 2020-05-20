@@ -4,6 +4,7 @@ from shapely import affinity
 from os import listdir
 from os.path import isfile, join
 from shapely.geometry import Polygon
+import baseClasses
 
 
 import pygame as pg
@@ -225,16 +226,11 @@ class Shell(object):
 
 
 
-class Map(object):
+class Map(baseClasses.CollisionObject):
 
     '''
     Eine Klasse um die Spielwelt zu repräsentieren
     '''
-    def __init__(self):
-        '''
-        Initiator der Map
-        '''
-        self.polygon = Polygon(createMap(displaywidth,displayheigth))                                                   #eine externe Funktion wird aufgerufen um die Map zu generieren
 
     def draw(self,display, drawableobjects, frame):
         '''
@@ -247,19 +243,16 @@ class Map(object):
     def hit(self):                                                                                                      #Muss definiert werden, da Map hittable ist, macht aber nichts
         pass
 
-class Explosion(object):
+class Explosion(baseClasses.CollisionObject):
 
     def __init__(self):
+        super().__init__(Polygon([(0, 1), (1, 1), (1, 0), (0, 0)]))
         self.daddy = 0
-        self.internalFrame = 0;
-        self.x = 0
-        self.y = 0
         pass
 
     def setParameters(self, daddy, x, y):
         self.daddy = daddy
-        self.x = x
-        self.y = y
+        self.recenter((x, y))
 
     def draw(self, coords, drawableObjects, frame):
         '''
@@ -275,8 +268,9 @@ class Explosion(object):
             self.daddy.state = shellStates.IDLE
             drawableObjects.remove(self)
             return
-        display.blit(expl[int(self.internalFrame / len(expl))], (self.x - 140, self.y - 140))
-        self.internalFrame += 1
+        display.blit(expl[int(self.internalFrame / len(expl))], (self.getCoords()[0] - 140, self.getCoords()[1] - 140))
+        print(self.getCoords())
+        self.advanceFrameCounter()
 
 
 def drawAllObjects(arrayOfObjects, display, frame):
@@ -350,7 +344,7 @@ dead = True
 x = 0
 angle = 0
 
-map = Map()
+map = Map(Polygon(createMap(displaywidth,displayheigth)))
 players = []
 players.append(Tank())
 players[0].move(map)
