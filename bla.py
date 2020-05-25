@@ -1,4 +1,4 @@
-import json
+import pygame.gfxdraw
 from os import listdir
 from os.path import isfile, join
 
@@ -8,9 +8,12 @@ from NiklasUndJansGeilesGame import my_color as c
 
 displaywidth = 800
 displayheight = 600
+half_w = int(displaywidth / 2)
+half_h = int(displayheight / 2)
 
 pygame.init()
-screen = pygame.display.set_mode((displaywidth, displayheight))
+
+screen = pygame.display.set_mode((displaywidth, displayheight), 0, 32)
 clock = pygame.time.Clock()
 x = 200
 y = 200
@@ -156,7 +159,8 @@ for myfile in only_files:
         exhaust.append(pygame.transform.scale(img, (200, 200)))
     elif "Shot_A" in myfile:
         shot.append(pygame.image.load("sprites/" + myfile))
-    # TODO: elif für tutorial Bilder
+    # TODO: elif für tutorial
+    # TODO: elif für counter
     elif "Explosion" in myfile:
         tutorialSheets.append(pygame.image.load("sprites/" + myfile))
 
@@ -174,50 +178,83 @@ def exhaust_(coords=tank_polygon.get("t4")):
 
 
 def game():
+    cont_delay = 4
     rt = 0
     rot_speed = 2
     global fire
+    start_timer = cont_delay
 
     while True:
-        screen.fill((255, 255, 255))
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    move_right = True
                 if event.key == pygame.K_SPACE:
                     fire = True
 
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT:
-                    move_left = False
                 if event.key == pygame.K_ESCAPE:
-                    return
+                    pause_menu()
+                    start_timer = cont_delay
+
+        screen.fill(c.white)
+        player.draw(rt, -rt, fire)
 
         rt = (rt + rot_speed) % 360
         # rt = 0
-        player.draw(rt, -rt, fire)
 
-        exhaust_()
+        # while start_timer > 0:
+        #    screen.fill(c.white)
+        #    player.draw(rt, -rt, fire)
+        #    draw_timer(start_timer)
+        #    pygame.time.delay(750)
+        #    start_timer -= 1
+        pygame.display.flip()
+        clock.tick(60)
 
+
+def draw_timer(timer):
+    # TODO shot durch richtige Bilder ersetzen
+    countdown = tutorialSheets[timer]
+    countdown_rect = pygame.Rect(displaywidth / 4, displayheight / 4, half_w, half_h)
+    s_countdown = pygame.transform.scale(countdown, (countdown_rect.width, countdown_rect.height))
+    screen.blit(s_countdown, countdown_rect)
+    pygame.display.flip()
+
+
+def pause_menu():
+    while (True):
+        pygame.gfxdraw.box(screen, (0, 0, displaywidth, displayheight), (128, 128, 128, 128))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    main()
+                if event.key == pygame.K_SPACE:
+                    return
         pygame.display.flip()
         clock.tick(60)
 
 
 def play_tutorial():
+    # TODO Bilder laden
     sheet = 0
+    tytel = pygame.Rect(displaywidth / 2 - 100, 20, 200, 40)
     next_btn = pygame.Rect(displaywidth - 50, displayheight / 2, 40, 40)
     prev_btn = pygame.Rect(10, displayheight / 2, 40, 40)
+    esc = pygame.Rect(10, 10, 40, 40)
 
     while True:
         screen.fill(c.white)
         mouse_pos = pygame.mouse.get_pos()
         pygame.draw.rect(screen, c.dark_grey, next_btn)
         pygame.draw.rect(screen, c.dark_grey, prev_btn)
+        pygame.draw.rect(screen, c.dark_red, esc)
 
         if next_btn.right > mouse_pos[0] > next_btn.left and next_btn.top < mouse_pos[1] < next_btn.bottom:
             pygame.draw.rect(screen, c.grey, next_btn)
@@ -229,6 +266,11 @@ def play_tutorial():
             prev_s = True
         else:
             prev_s = False
+
+        if esc.right > mouse_pos[0] > esc.left and esc.top < mouse_pos[1] < esc.bottom:
+            pygame.draw.rect(screen, c.red, esc)
+            if pygame.mouse.get_pressed() == (True, False, False):
+                return
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -265,21 +307,36 @@ def play_tutorial():
         s_sheet = pygame.transform.scale(tutorialSheets[sheet], (displaywidth, displayheight))
         screen.blit(s_sheet, (0, 0))
 
+        # tytel text
+        my_tytel_font = pygame.font.Font("freesansbold.ttf", 32)
+        tytel_surf, tytel_rect = text_objects("Turorial", my_tytel_font)
+        tytel_rect.center = tytel.center
+        screen.blit(tytel_surf, tytel_rect)
+
         pygame.display.flip()
         clock.tick(60)
 
 
 def setting():
-    global music_set
-    # music = pygame.Rect(displaywidth-210, 10, 200, 40)
-    music = pygame.Rect(displaywidth / 2 - 100, displayheight / 2, 200, 40)
+    # TODO Bilder laden
+    global music_set, sound_set
+
+    esc = pygame.Rect(10, 10, 40, 40)
+    tytel = pygame.Rect(displaywidth / 2 - 100, 20, 200, 40)
+
+    music = pygame.Rect(displaywidth / 2 - 50, displayheight / 2, 200, 40)
     music_txt = pygame.Rect(music.left, music.top, 50, 40)
     music_sym = pygame.Rect(music.left + music_txt.width + 5, music.top, 40, 40)
-    music_balken = pygame.Rect(music_sym.left + 5, music.top, 100, 40)
+    sound = pygame.Rect(displaywidth / 2 - 50, displayheight / 2 + 60, 200, 40)
+    sound_txt = pygame.Rect(sound.left, sound.top, 50, 40)
+    sound_sym = pygame.Rect(sound.left + sound_txt.width + 5, sound.top, 40, 40)
 
     while True:
         screen.fill(c.white)
         pygame.draw.rect(screen, c.dark_orange, music_sym)
+        pygame.draw.rect(screen, c.dark_orange, sound_sym)
+        pygame.draw.rect(screen, c.dark_red, esc)
+
         mouse_pos = pygame.mouse.get_pos()
 
         if music_sym.right > mouse_pos[0] > music_sym.left and music_sym.top < mouse_pos[1] < music_sym.bottom:
@@ -287,6 +344,16 @@ def setting():
             music_s = True
         else:
             music_s = False
+        if sound_sym.right > mouse_pos[0] > sound_sym.left and sound_sym.top < mouse_pos[1] < sound_sym.bottom:
+            pygame.draw.rect(screen, c.orange, sound_sym)
+            sound_s = True
+        else:
+            sound_s = False
+
+        if esc.right > mouse_pos[0] > esc.left and esc.top < mouse_pos[1] < esc.bottom:
+            pygame.draw.rect(screen, c.red, esc)
+            if pygame.mouse.get_pressed() == (True, False, False):
+                return
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -299,6 +366,11 @@ def setting():
                         music_set = False
                     else:
                         music_set = True
+                if sound_s:
+                    if sound_set:
+                        sound_set = False
+                    else:
+                        sound_set = True
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_ESCAPE:
@@ -307,26 +379,94 @@ def setting():
         if not music_set:
             pygame.draw.line(screen, c.red, music_sym.topleft, music_sym.bottomright, 2)
             pygame.draw.line(screen, c.red, music_sym.topright, music_sym.bottomleft, 2)
+        if not sound_set:
+            pygame.draw.line(screen, c.red, sound_sym.topleft, sound_sym.bottomright, 2)
+            pygame.draw.line(screen, c.red, sound_sym.topright, sound_sym.bottomleft, 2)
 
-        # tytel text
+        # setting text
         my_music_font = pygame.font.Font("freesansbold.ttf", 16)
         music_surf, music_rect = text_objects("Music", my_music_font)
         music_rect.center = music_txt.center
         screen.blit(music_surf, music_rect)
+        sound_surf, sound_rect = text_objects("Sound", my_music_font)
+        sound_rect.center = sound_txt.center
+        screen.blit(sound_surf, sound_rect)
+
+        # tytel text
+        my_tytel_font = pygame.font.Font("freesansbold.ttf", 32)
+        tytel_surf, tytel_rect = text_objects("Settings", my_tytel_font)
+        tytel_rect.center = tytel.center
+        screen.blit(tytel_surf, tytel_rect)
 
         pygame.display.flip()
         clock.tick(60)
 
 
-# def set_music():
-#    global music_set
-#
-#    if music_set:
-#        music_set = False
-#    else:
-#        music_set = True
-#    print(music_set)
-#    return
+def setting_draw():
+    music = pygame.Rect(displaywidth / 2 - 50, displayheight / 2, 200, 40)
+    music_txt = pygame.Rect(music.left, music.top, 50, 40)
+    music_sym = pygame.Rect(music.left + music_txt.width + 5, music.top, 40, 40)
+    sound = pygame.Rect(displaywidth / 2 - 50, displayheight / 2 + 60, 200, 40)
+    sound_txt = pygame.Rect(sound.left, sound.top, 50, 40)
+    sound_sym = pygame.Rect(sound.left + sound_txt.width + 5, sound.top, 40, 40)
+
+    while True:
+        pygame.draw.rect(screen, c.dark_orange, music_sym)
+        pygame.draw.rect(screen, c.dark_orange, sound_sym)
+
+        mouse_pos = pygame.mouse.get_pos()
+
+        if music_sym.right > mouse_pos[0] > music_sym.left and music_sym.top < mouse_pos[1] < music_sym.bottom:
+            pygame.draw.rect(screen, c.orange, music_sym)
+            music_s = True
+        else:
+            music_s = False
+        if sound_sym.right > mouse_pos[0] > sound_sym.left and sound_sym.top < mouse_pos[1] < sound_sym.bottom:
+            pygame.draw.rect(screen, c.orange, sound_sym)
+            sound_s = True
+        else:
+            sound_s = False
+
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                if music_s:
+                    if music_set:
+                        music_set = False
+                    else:
+                        music_set = True
+                if sound_s:
+                    if sound_set:
+                        sound_set = False
+                    else:
+                        sound_set = True
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_ESCAPE:
+                    return
+
+        if not music_set:
+            pygame.draw.line(screen, c.red, music_sym.topleft, music_sym.bottomright, 2)
+            pygame.draw.line(screen, c.red, music_sym.topright, music_sym.bottomleft, 2)
+        if not sound_set:
+            pygame.draw.line(screen, c.red, sound_sym.topleft, sound_sym.bottomright, 2)
+            pygame.draw.line(screen, c.red, sound_sym.topright, sound_sym.bottomleft, 2)
+
+        # setting text
+        my_music_font = pygame.font.Font("freesansbold.ttf", 16)
+        music_surf, music_rect = text_objects("Music", my_music_font)
+        music_rect.center = music_txt.center
+        screen.blit(music_surf, music_rect)
+        sound_surf, sound_rect = text_objects("Sound", my_music_font)
+        sound_rect.center = sound_txt.center
+        screen.blit(sound_surf, sound_rect)
+
+        pygame.display.flip()
+        clock.tick(60)
 
 
 # ________________MENU________________
@@ -336,6 +476,7 @@ def text_objects(text="", font="", color=c.black):
 
 
 def draw_menu(mouse_pos):
+    # TODO Bilder laden
     tytel = pygame.Rect(displaywidth / 2 - 50, displayheight / 2 - 20, 100, 40)
     start = pygame.Rect(displaywidth / 2 - 150, displayheight / 2 + 70, 300, 50)
     tutorial = pygame.Rect(displaywidth / 2 - 125, displayheight / 2 + 145, 250, 40)
@@ -346,6 +487,7 @@ def draw_menu(mouse_pos):
         pygame.draw.rect(screen, c.green, start)
         if pygame.mouse.get_pressed() == (True, False, False):
             game()
+
     else:
         pygame.draw.rect(screen, c.dark_green, start)
 
@@ -384,15 +526,6 @@ def draw_menu(mouse_pos):
     tutorial_rect.center = tutorial.center
     screen.blit(tutorial_surf, tutorial_rect)
 
-    # settings text
-    my_settings_font = pygame.font.Font("freesansbold.ttf", 14)
-    settings_surf, settings_rect = text_objects("music", my_settings_font)
-    settings_rect.center = settings.center
-    screen.blit(settings_surf, settings_rect)
-    settings_surf, settings_rect = text_objects("sound", my_settings_font)
-    settings_rect.center = settings.center
-    screen.blit(settings_surf, settings_rect)
-
 
 music_set = True
 sound_set = True
@@ -404,17 +537,30 @@ fire = False
 fire_count = 0
 frame = 0
 
-while True:
-    screen.fill(c.white)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            quit()
+def main():
+    while True:
+        screen.fill(c.white)
 
-    mouse = pygame.mouse.get_pos()
-    # setting(mouse)
-    draw_menu(mouse)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
 
-    pygame.display.flip()
-    clock.tick(30)
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    game()
+                elif event.key == pygame.K_s:
+                    setting()
+                elif event.key == pygame.K_t:
+                    play_tutorial()
+
+        mouse = pygame.mouse.get_pos()
+        # setting(mouse)
+        draw_menu(mouse)
+
+        pygame.display.flip()
+        clock.tick(60)
+
+
+main()

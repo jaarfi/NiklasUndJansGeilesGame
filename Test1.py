@@ -224,7 +224,7 @@ class Map(object):
         :param display: Das Display auf welches gemalt werden soll
         :return: None
         '''
-        pg.gfxdraw.filled_polygon(display, map.polygon.exterior.coords, (255, 255, 255))                                                #Ein großes Polygon wird gezeichnet, welches dem Untergrund enspricht
+        pg.gfxdraw.filled_polygon(display, map.polygon.exterior.coords, (255, 255, 255))                                #Ein großes Polygon wird gezeichnet, welches dem Untergrund enspricht
 
     def hit(self):                                                                                                      #Muss definiert werden, da Map hittable ist, macht aber nichts
         pass

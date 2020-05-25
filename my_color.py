@@ -12,7 +12,8 @@ orange= (255, 170,   0)
 
 light_grey  = (200, 200, 200)
 
-dark_grey   = ( 50, 50, 50)
+dark_red    = (128,   0,   0)
+dark_grey   = ( 50,  50,  50)
 dark_orange = (255, 140,   0)
 dark_green  = (  0, 128,   0)
 dark_blue   = (  0,   0, 128)
