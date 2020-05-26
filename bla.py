@@ -300,8 +300,8 @@ def play_tutorial():
         screen.fill(c.white)
         mouse_pos = pygame.mouse.get_pos()
 
-        nxt_btn = button_action(nextp, mouse_pos, c.dark_grey, c.grey)
-        prv_btn = button_action(prevp, mouse_pos, c.dark_grey, c.grey)
+        nxt_btn = button_action(nextp, mouse_pos, c.dark_gray, c.gray)
+        prv_btn = button_action(prevp, mouse_pos, c.dark_gray, c.gray)
         esc_btn = button_action(esc, mouse_pos, c.dark_red, c.red)
 
         for event in pygame.event.get():
@@ -436,19 +436,26 @@ frame = 0
 
 
 def menu():
+
+    # TODO Bilder laden
+    tytel = pygame.Rect(displaywidth / 2 - 50, displayheight / 2 - 20, 100, 40)
+    start = pygame.Rect(displaywidth / 2 - 100, displayheight / 2 + 70, 200, 50)
+    tutorial = pygame.Rect(displaywidth / 2 - 75, displayheight / 2 + 145, 150, 40)
+    settings = pygame.Rect(displaywidth - 50, 10, 40, 40)
+
+    btn_start = btn_scale(btn_gray_out, btn_gray_in, start)
+    btn_tutorial = btn_scale(btn_gray_out, btn_gray_in, tutorial)
+
     while True:
         screen.fill(c.white)
         mouse_pos = pygame.mouse.get_pos()
 
-        # TODO Bilder laden
-        tytel = pygame.Rect(displaywidth / 2 - 50, displayheight / 2 - 20, 100, 40)
-        start = pygame.Rect(displaywidth / 2 - 150, displayheight / 2 + 70, 300, 50)
-        tutorial = pygame.Rect(displaywidth / 2 - 125, displayheight / 2 + 145, 250, 40)
-        settings = pygame.Rect(displaywidth - 50, 10, 40, 40)
+        # sta_act = button_action(start, mouse_pos, c.dark_green, c.green)
+        # tut_act = button_action(tutorial, mouse_pos, c.dark_blue, c.blue)
+        set_act = button_action(settings, mouse_pos, c.khaki, c.yellow)
 
-        sta_btn = button_action(start, mouse_pos, c.dark_green, c.green)
-        tut_btn = button_action(tutorial, mouse_pos, c.dark_blue, c.blue)
-        set_btn = button_action(settings, mouse_pos, c.khaki, c.yellow)
+        sta_act = button_action2(start, mouse_pos, btn_start)
+        tut_act = button_action2(tutorial, mouse_pos, btn_tutorial)
 
         draw_text(45, tytel, "NiklasUndJansGeilesGame")
         draw_text(20, start, "start")
@@ -468,15 +475,44 @@ def menu():
                     play_tutorial()
 
             if event.type == pygame.MOUSEBUTTONUP:
-                if sta_btn:
+                if sta_act:
                     game()
-                elif set_btn:
+                elif set_act:
                     setting(1)
-                elif tut_btn:
+                elif tut_act:
                     play_tutorial()
 
         pygame.display.flip()
         clock.tick(60)
 
+
+def btn_scale1(btn, rect):
+    btn[0] = pygame.transform.scale(btn[0], (rect.width, rect.height))
+    btn[1] = pygame.transform.scale(btn[1], (rect.width, rect.height))
+    return btn
+
+
+def btn_scale(btn1, btn2, rect):
+    btn1 = pygame.transform.scale(btn1, (rect.width, rect.height))
+    btn2 = pygame.transform.scale(btn2, (rect.width, rect.height))
+    return btn1, btn2
+
+
+def button_action2(rect, mouse_pos, btn):
+    if rect.right > mouse_pos[0] > rect.left and rect.top < mouse_pos[1] < rect.bottom:
+        screen.blit(btn[1], rect.topleft)
+        if pygame.mouse.get_pressed() == (True, False, False):
+            return True
+    else:
+        screen.blit(btn[0], rect.topleft)
+        return False
+
+
+btn_gray_out = pygame.image.load("pics/btn/BTN_GRAY_RECT_OUT.png")
+btn_gray_in = pygame.image.load("pics/btn/BTN_GRAY_RECT_IN.png")
+btn_blue_out = pygame.image.load("pics/btn/BTN_BLUE_RECT_OUT.png")
+btn_blue_in = pygame.image.load("pics/btn/BTN_BLUE_RECT_IN.png")
+btn_orange_out = pygame.image.load("pics/btn/BTN_ORANGE_RECT_OUT.png")
+btn_orange_in = pygame.image.load("pics/btn/BTN_ORANGE_RECT_IN.png")
 
 menu()
