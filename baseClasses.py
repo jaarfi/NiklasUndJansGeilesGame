@@ -29,6 +29,7 @@ class shellTypes(enum.Enum):
         SEEKDISTANCE = 0
         SEEKINGGRAVITY = 0
         POSTLOCKONSPEED = 0
+        POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
@@ -47,6 +48,7 @@ class shellTypes(enum.Enum):
         SEEKDISTANCE = 0
         SEEKINGGRAVITY = 0
         POSTLOCKONSPEED= 0
+        POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
@@ -65,11 +67,12 @@ class shellTypes(enum.Enum):
         SEEKDISTANCE = 0
         SEEKINGGRAVITY = 0
         POSTLOCKONSPEED= 0
+        POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-    class SEEKINGROCKET(enum.Enum):
+    class GRAVITRONROCKET(enum.Enum):
         SPEED = 10
         GRAVITY = 0.05
         DAMAGE = 12
@@ -77,18 +80,19 @@ class shellTypes(enum.Enum):
         SIZE = 10
 
         SEEKING = True
-        NAME = "Seeking Rocket"
+        NAME = "Gravitron Rocket"
         FLYTIME = float("inf")
         TIMETILLSEEK = 0.5
-        SEEKDISTANCE = 15
-        SEEKINGGRAVITY = 10
-        POSTLOCKONSPEED= 10
+        SEEKDISTANCE = 1500
+        SEEKINGGRAVITY = 0
+        POSTLOCKONSPEED = 10
+        POSTLOCKONACCELERATION = 1
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
     class SEEKINGMINE(enum.Enum):
-        SPEED = 4
+        SPEED = 15
         GRAVITY = 0
         DAMAGE = 25
         RELOAD = 0.1
@@ -98,29 +102,47 @@ class shellTypes(enum.Enum):
 
         FLYTIME = 1
         TIMETILLSEEK = 1
-        SEEKDISTANCE = 100
+        SEEKDISTANCE = 200
         SEEKINGGRAVITY = 0
-        POSTLOCKONSPEED = 3
+        POSTLOCKONSPEED = 20
+        POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-    #class SHOTGUN(enum.Enum):
-        #SPEED = 30
-        #GRAVITY = 0.05
-        #DAMAGE = 3
-        #RELOAD = 2
-        #SIZE = 2
+    class SHOTGUN(enum.Enum):
+        SPEED = 30
+        GRAVITY = 0.05
+        DAMAGE = 3
+        RELOAD = 2
+        SIZE = 2
 
-        #SEEKING = False
-        #NAME = "Shotgun Shell"
-        #FLYTIME = float("inf")
-        #TIMETILLSEEK = 0
-        #SEEKDISTANCE = 0
-        #POSTLOCKONSPEED = 0
+        SEEKING = False
+        NAME = "Shotgun Shell"
+        FLYTIME = float("inf")
+        TIMETILLSEEK = 0
+        SEEKDISTANCE = 0
+        POSTLOCKONSPEED = 0
 
-        #NUMBEROFSHELLS = 5
-        #SPREAD = 10
+        NUMBEROFSHELLS = 5
+        SPREAD = 10
+
+    class FLAK(enum.Enum):
+        SPEED = 30
+        GRAVITY = 0
+        DAMAGE = 0
+        RELOAD = 2
+        SIZE = 2
+
+        SEEKING = False
+        NAME = "Flak"
+        FLYTIME = 0.3
+        TIMETILLSEEK = 0
+        SEEKDISTANCE = 0
+        POSTLOCKONSPEED = 0
+
+        NUMBEROFSHELLS = 15
+        SPREAD = 10
 
 
     def next(self):
@@ -244,6 +266,7 @@ class Shell(MovablePhysicsObject):
         self.seeking = False
         self.tank = tank
         self.explosion = 0
+        self.gameInstance.collisionObjects.append(self)
 
     def move(self):
         if self.shellState == shellStates.FLYING:
@@ -254,16 +277,18 @@ class Shell(MovablePhysicsObject):
                 distanceToSeekedPlayer = 99999999
                 vectorToSeekedPlayer = 0
                 for player in self.gameInstance.players:
-                    vectorToPlayer = (self.getCoords()[0] - player.getCoords()[0], self.getCoords()[1] - player.getCoords()[1])
-                    distanceToPlayer = math.sqrt(vectorToPlayer[0]*vectorToPlayer[0]+vectorToPlayer[1]*vectorToPlayer[1])
-                    if distanceToPlayer < distanceToSeekedPlayer and distanceToPlayer < self.shellType.value.SEEKDISTANCE.value and player != self.tank:
-                        seekedPlayer = player
-                        vectorToSeekedPlayer = vectorToPlayer
+                    if player != self.tank:
+                        vectorToPlayer = (self.getCoords()[0] - player.getCoords()[0], self.getCoords()[1] - player.getCoords()[1])
+                        distanceToPlayer = math.sqrt(vectorToPlayer[0]*vectorToPlayer[0]+vectorToPlayer[1]*vectorToPlayer[1])
+                        if distanceToPlayer < distanceToSeekedPlayer and distanceToPlayer < self.shellType.value.SEEKDISTANCE.value:
+                            seekedPlayer = player
+                            vectorToSeekedPlayer = vectorToPlayer
                 if seekedPlayer != 0:
                     self.color = Color(222, 23, 56)
                     self.speed = self.shellType.value.POSTLOCKONSPEED.value
                     vectorToSeekedPlayer = self.normalizeVector(vectorToSeekedPlayer)
-                    self.changeVectorBy(-vectorToSeekedPlayer[0]*self.shellType.value.SPEED.value*0.004,-vectorToSeekedPlayer[1]*self.shellType.value.SPEED.value*0.004)
+                    self.changeVectorBy(-vectorToSeekedPlayer[0]*self.shellType.value.POSTLOCKONSPEED.value*0.2,-vectorToSeekedPlayer[1]*self.shellType.value.POSTLOCKONSPEED.value*0.2)
+                    self.speed += self.shellType.value.POSTLOCKONACCELERATION.value
 
             self.physicsMove()
             self.changeVectorBy(0, self.gravity)
@@ -277,7 +302,7 @@ class Shell(MovablePhysicsObject):
                 (newCoords[0], newCoords[1])])
 
             for thing in self.gameInstance.collisionObjects:
-                if thing.polygon.intersects(self.collisionPolygon) and thing != self and thing != self.tank:
+                if thing.polygon.intersects(self.collisionPolygon) and thing != self and thing != self.tank and not thing in self.tank.shells:
                     thing.hit(self.shellType.value.DAMAGE.value)
                     self.explode()
 
@@ -286,7 +311,10 @@ class Shell(MovablePhysicsObject):
                 self.speed -= self.shellType.value.SPEED.value/(self.shellType.value.FLYTIME.value*60)
 
             if self.speed <= 0:
+                print("vektor 0")
                 self.changeVectorTo((0,0))
+                if not self.shellType.value.SEEKING.value:
+                    self.safedelete()
 
             if self.remainingTimeTillSeek > 0:
                 self.remainingTimeTillSeek -= 1
@@ -301,7 +329,6 @@ class Shell(MovablePhysicsObject):
             if self.explosion.draw(display):
                 self.safedelete()
 
-
     def explode(self):
         self.explosion = Explosion(self.polygon, self.gameInstance)
         self.shellState = shellStates. EXPLODING
@@ -309,10 +336,13 @@ class Shell(MovablePhysicsObject):
     def safedelete(self):
         if self in self.tank.shells:
             self.tank.shells.remove(self)
+        if self in self.gameInstance.collisionObjects:
+            self.gameInstance.collisionObjects.remove(self)
 
     def startSeeking(self):
         if self.shellType.value.SEEKING.value:
             self.gravity = self.shellType.value.SEEKINGGRAVITY.value
+            self.seeking = True
 
 class Game(object):
     def __init__(self, width, heigth, display, font):
@@ -367,16 +397,19 @@ class Game(object):
 class Tank(MovablePhysicsObject):
     def __init__(self, gameinstance):
         color = pg.Color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
-        super().__init__(Polygon([(32,32), (32,62), (102,62), (102,32)]),gameinstance,[0,0],0, color)
-        self.angle = 45
-        tmpCoords = self.getCoords()
-        self.firingVector = [math.cos(self.angle)*100, math.sin(self.angle)*100]
+        super().__init__(Polygon([(2,38),(21,57),(87,58),(103,45),(103,15),(76,17),(76,0),(34,0),(35,16),(18,16)]),gameinstance,[0,0],0, color)
+        self.angle = -45
+        self.firingVector = [math.cos(math.radians(self.angle))*100, math.sin(math.radians(self.angle))*100]
         self.shells = []
-        self.mapLayer = Polygon([(32,32), (32,62), (102,62), (102,32)])
         self.timeToLoad = 0
-        self.currentlySelectedShell = shellTypes.NORMAL
+        self.currentlySelectedShell = shellTypes.FLAK
         self.life = 100
         self.groundedCorner = 1
+        self.texture = pg.image.load("pics/tank/tank_model_1.png")
+        self.texture = pg.transform.scale(self.texture, (104, 59))
+        self.cannonTexture = pg.image.load("pics/tank/tank_model_1_w1.png")
+        self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
+
 
     def move(self, map):
         key = pg.key.get_pressed()
@@ -389,9 +422,9 @@ class Tank(MovablePhysicsObject):
             self.speed = 3
             self.groundedCorner = 1
         if key[pg.K_UP]:
-            self.angle += 0.025
+            self.angle += 1
         if key[pg.K_DOWN]:
-            self.angle -= 0.025
+            self.angle -= 1
         for event in pg.event.get():
             if event.type == pg.KEYUP and event.key == pg.K_PERIOD:
                 self.currentlySelectedShell = self.currentlySelectedShell.next()
@@ -402,11 +435,12 @@ class Tank(MovablePhysicsObject):
         for shell in self.shells:
             shell.move()
         self.rotateToGround(map, self.groundedCorner)
-        self.firingVector = [math.cos(self.angle)*100, math.sin(self.angle)*100]
+        self.firingVector = [math.cos(math.radians(self.angle))*100, math.sin(math.radians(self.angle))*100]
         self.changeVectorTo([0,0])
         self.speed = 0
         if self.timeToLoad > 0:
             self.timeToLoad -= 1
+
 
     def fireShell(self):
         if self.timeToLoad <= 0:
@@ -416,7 +450,7 @@ class Tank(MovablePhysicsObject):
                     if i == 0:
                         self.angle -= self.currentlySelectedShell.value.SPREAD.value/2
                     self.angle += self.currentlySelectedShell.value.SPREAD.value*i/(self.currentlySelectedShell.value.NUMBEROFSHELLS.value-1)
-                    self.firingVector = [math.cos(self.angle) * 100, math.sin(self.angle) * 100]
+                    self.firingVector = [math.cos(math.radians(self.angle))*100, math.sin(math.radians(self.angle))*100]
                     shellPolygon = Polygon([(tmpCoords[0], tmpCoords[1]+5), (tmpCoords[0]+5, tmpCoords[1]+5),(tmpCoords[0]+5, tmpCoords[1]),(tmpCoords[0], tmpCoords[1])])
                     self.shells.append(Shell(shellPolygon, self.gameInstance, self.firingVector, self.currentlySelectedShell, self))
             else:
@@ -434,14 +468,21 @@ class Tank(MovablePhysicsObject):
         self.life = self.life - dmg
 
     def draw(self, display):
-        print(self.angle)
         tmpCoords = (int(self.getCoords()[0]), int(self.getCoords()[1]))
-        super().draw(display)
+        #super().draw(display)
         pg.draw.line(display, self.color, (tmpCoords[0], tmpCoords[1]+50), (tmpCoords[0]+self.life, tmpCoords[1]+50), 10) #Die Hp Anzeige zeichnen
         pg.draw.line(display, self.color, (tmpCoords[0]-50, tmpCoords[1]), (tmpCoords[0]-50, tmpCoords[1]+self.timeToLoad), 10) #Die Hp Anzeige zeichnen
-        pg.draw.line(display, self.color, (tmpCoords[0], tmpCoords[1]), (tmpCoords[0]+self.firingVector[0], tmpCoords[1]+self.firingVector[1]), 1) #Die Hp Anzeige zeichnen
+        #pg.draw.line(display, self.color, (tmpCoords[0], tmpCoords[1]), (tmpCoords[0]+self.firingVector[0], tmpCoords[1]+self.firingVector[1]), 1) #Die Hp Anzeige zeichnen
         for shell in self.shells:
             shell.draw(display)
+
+        pos = (self.getCoords()[0] - (self.cannonTexture.get_width() / 2),
+               self.getCoords()[1] - (self.cannonTexture.get_height() / 2))
+        display.blit(self.cannonTexture,pos)
+        pos = (self.getCoords()[0] - (self.texture.get_width() / 2),
+               self.getCoords()[1] - (self.texture.get_height() / 2))
+        display.blit(self.texture,pos)
+
         textsurface = self.gameInstance.font.render(self.currentlySelectedShell.value.NAME.value, False, self.color)
         display.blit(textsurface, self.getCoords())
 
@@ -463,3 +504,11 @@ class Tank(MovablePhysicsObject):
             self.rotateBy(-1, corner)
         elif corner == 2:
             self.rotateBy(1, corner)
+
+        self.texture = pg.image.load("pics/tank/tank_model_1.png")
+        self.texture = pg.transform.scale(self.texture, (104, 59))
+        self.texture = pg.transform.rotate(self.texture, -self.rotation)
+        self.cannonTexture = pg.image.load("pics/tank/tank_model_1_w1.png")
+        self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
+        self.cannonTexture = pg.transform.rotate(self.cannonTexture, -self.angle)
+        self.cannonTexture = pg.transform.rotate(self.cannonTexture, -180)

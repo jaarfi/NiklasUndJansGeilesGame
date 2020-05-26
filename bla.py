@@ -4,9 +4,7 @@ from os.path import isfile, join
 import math
 import pygame
 import pygame.gfxdraw
-
-from NiklasUndJansGeilesGame import my_color as c
-
+import my_color as c
 displaywidth = 800
 displayheight = 600
 half_w = int(displaywidth / 2)
