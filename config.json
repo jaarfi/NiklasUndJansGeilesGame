@@ -1,0 +1,24 @@
+{
+  "audio":
+  {
+    "music": true,
+    "sound": true
+  },
+
+  "theme":
+  {
+    "basic":
+    {
+      "c1": "white",
+      "c2": "black",
+      "c3": "gray"
+    }
+  },
+
+  "color":
+  {
+    "white": [255, 255, 255],
+    "black": [0,   0,   0],
+    "gray": [128, 128, 128]
+  }
+}

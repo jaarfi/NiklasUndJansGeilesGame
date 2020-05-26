@@ -7,6 +7,7 @@ from os import listdir
 from os.path import isfile, join
 from shapely.geometry import Polygon, Point, LineString
 from pygame.locals import *
+import Menu
 
 class shellStates(enum.Enum):
     IDLE = 1
@@ -343,6 +344,9 @@ class Game(object):
                 if event.type == QUIT:
                     pg.quit()
                     quit()
+                if event.type == KEYUP:
+                    if event.key == K_ESCAPE:
+                        Menu.pause_menu()
             self.display.fill((0, 0, 0))
 
             for toDraw in self.drawableObjects:
@@ -366,7 +370,7 @@ class Game(object):
 
 class Tank(MovablePhysicsObject):
     def __init__(self, gameinstance):
-        color = pg.Color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+        color = pg.Color(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         super().__init__(Polygon([(32,32), (32,62), (102,62), (102,32)]),gameinstance,[0,0],0, color)
         self.angle = 45
         tmpCoords = self.getCoords()

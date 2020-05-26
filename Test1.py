@@ -1,4 +1,3 @@
-
 from baseClasses import *
 
 import pygame as pg
@@ -21,7 +20,6 @@ displaycolbit = 32
 display = pg.display.set_mode((displaywidth, displayheigth), displayflags, displaycolbit)
 clock = pg.time.Clock()
 
-
-game = Game(displaywidth,displayheigth,display, myfont)
+game = Game(displaywidth, displayheigth, display, myfont)
 game.startGame()
 
