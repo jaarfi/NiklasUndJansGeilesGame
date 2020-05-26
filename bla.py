@@ -225,9 +225,21 @@ def draw_timer(timer):
 
 
 def pause_menu():
-    while (True):
-        pygame.gfxdraw.box(screen, (0, 0, displaywidth, displayheight), (128, 128, 128, 128))
+    pygame.gfxdraw.box(screen, (0, 0, displaywidth, displayheight), (128, 128, 128, 128))
+    pygame.display.flip()
+    pause = pygame.Rect(displaywidth/5, displayheight/5, displaywidth*0.6, displayheight*0.6)
 
+    tytel = pygame.Rect(pause.left + pause.width / 2 - 50, pause.top + 20, 100, 40)
+    esc = pygame.Rect(pause.left + pause.width/2 - 50, pause.bottom - 150, 100, 40)
+    restart = pygame.Rect(pause.left + pause.width/2 - 50, pause.bottom - 100, 100, 40)
+    resume = pygame.Rect(pause.left + pause.width/2 - 50, pause.bottom - 50, 100, 40)
+    settings = pygame.Rect(pause.right - 50, pause.top-10, 40, 40)
+    loop = True
+
+    while loop:
+        pygame.draw.rect(screen, (0, 0, 255), pause)
+
+        mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -235,10 +247,39 @@ def pause_menu():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     main()
+                if event.key == pygame.K_r:
+                    game()
                 if event.key == pygame.K_SPACE:
                     return
-        pygame.display.flip()
+
+        button_action(settings, mouse_pos, c.yellow, c.khaki, setting)
+        button_action(esc, mouse_pos, c.green, c.dark_green, main)
+        button_action(restart, mouse_pos, c.green, c.dark_green, main)
+        loop = button_action(resume, mouse_pos, c.green, c.dark_green, None)
+        if loop is None:
+            loop = True
+
+        draw_text(32, tytel, "Pause")
+        draw_text(20, restart, "restart")
+        draw_text(20, esc, "quit")
+        draw_text(20, resume, "resume")
+
+        pygame.display.update(pause)
         clock.tick(60)
+
+    return
+
+
+def button_action(rect, mouse_pos, color1, color2, fnc=None):
+    if rect.right > mouse_pos[0] > rect.left and rect.top < mouse_pos[1] < rect.bottom:
+        pygame.draw.rect(screen, color1, rect)
+        if pygame.mouse.get_pressed() == (True, False, False):
+            if fnc:
+                fnc()
+            else:
+                return False
+    else:
+        pygame.draw.rect(screen, color2, rect)
 
 
 def play_tutorial():
@@ -308,13 +349,57 @@ def play_tutorial():
         screen.blit(s_sheet, (0, 0))
 
         # tytel text
-        my_tytel_font = pygame.font.Font("freesansbold.ttf", 32)
-        tytel_surf, tytel_rect = text_objects("Turorial", my_tytel_font)
-        tytel_rect.center = tytel.center
-        screen.blit(tytel_surf, tytel_rect)
+        draw_text(32, tytel, "Tutorial")
 
         pygame.display.flip()
         clock.tick(60)
+
+
+def settings_die4te():
+    def pause_menu():
+        pygame.gfxdraw.box(screen, (0, 0, displaywidth, displayheight), (128, 128, 128, 128))
+        pygame.display.flip()
+        pause = pygame.Rect(displaywidth / 5, displayheight / 5, displaywidth * 0.6, displayheight * 0.6)
+
+        tytel = pygame.Rect(pause.left + pause.width / 2 - 50, pause.top + 20, 100, 40)
+        esc = pygame.Rect(pause.left + pause.width / 2 - 50, pause.bottom - 150, 100, 40)
+        restart = pygame.Rect(pause.left + pause.width / 2 - 50, pause.bottom - 100, 100, 40)
+        resume = pygame.Rect(pause.left + pause.width / 2 - 50, pause.bottom - 50, 100, 40)
+        settings = pygame.Rect(pause.right - 50, pause.top - 10, 40, 40)
+        loop = True
+
+        while loop:
+            pygame.draw.rect(screen, (0, 0, 255), pause)
+
+            mouse_pos = pygame.mouse.get_pos()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        main()
+                    if event.key == pygame.K_r:
+                        game()
+                    if event.key == pygame.K_SPACE:
+                        return
+
+            button_action(settings, mouse_pos, c.yellow, c.khaki, setting)
+            button_action(esc, mouse_pos, c.green, c.dark_green, main)
+            button_action(restart, mouse_pos, c.green, c.dark_green, main)
+            loop = button_action(resume, mouse_pos, c.green, c.dark_green, None)
+            if loop is None:
+                loop = True
+
+            draw_text(32, tytel, "Pause")
+            draw_text(20, restart, "restart")
+            draw_text(20, esc, "quit")
+            draw_text(20, resume, "resume")
+
+            pygame.display.update(pause)
+            clock.tick(60)
+
+        return
 
 
 def work_setting():
@@ -400,6 +485,7 @@ def work_setting():
 
         pygame.display.flip()
         clock.tick(60)
+
 
 def setting():
     esc = pygame.Rect(10, 10, 40, 40)
@@ -512,48 +598,18 @@ def draw_menu(mouse_pos):
     settings = pygame.Rect(displaywidth - 50, 10, 40, 40)
 
     # Start-Button
-    if start.right > mouse_pos[0] > start.left and start.top < mouse_pos[1] < start.bottom:
-        pygame.draw.rect(screen, c.green, start)
-        if pygame.mouse.get_pressed() == (True, False, False):
-            game()
-
-    else:
-        pygame.draw.rect(screen, c.dark_green, start)
-
+    button_action(start, mouse_pos, c.green, c.dark_green, game)
     # Tutorial-Button
-    if tutorial.right > mouse_pos[0] > tutorial.left and tutorial.top < mouse_pos[1] < tutorial.bottom:
-        pygame.draw.rect(screen, c.blue, tutorial)
-        if pygame.mouse.get_pressed() == (True, False, False):
-            play_tutorial()
-    else:
-        pygame.draw.rect(screen, c.dark_blue, tutorial)
-
+    button_action(tutorial, mouse_pos, c.blue, c.dark_blue, play_tutorial)
     # Setting-Button
-    if settings.right > mouse_pos[0] > settings.left and settings.top < mouse_pos[1] < settings.bottom:
-        pygame.draw.rect(screen, c.yellow, settings)
-        if pygame.mouse.get_pressed() == (True, False, False):
-            setting()
-            # set_music()
-    else:
-        pygame.draw.rect(screen, c.khaki, settings)
+    button_action(settings, mouse_pos, c.yellow, c.khaki, setting)
 
     # tytel text
-    my_tytel_font = pygame.font.Font("freesansbold.ttf", 45)
-    tytel_surf, tytel_rect = text_objects("NiklasUndJansGeilesGame", my_tytel_font)
-    tytel_rect.center = tytel.center
-    screen.blit(tytel_surf, tytel_rect)
-
+    draw_text(45, tytel, "NiklasUndJansGeilesGame")
     # start text
-    my_start_font = pygame.font.Font("freesansbold.ttf", 20)
-    start_surf, start_rect = text_objects("start", my_start_font)
-    start_rect.center = start.center
-    screen.blit(start_surf, start_rect)
-
+    draw_text(20, start, "start")
     # tutorial text
-    my_tutorial_font = pygame.font.Font("freesansbold.ttf", 16)
-    tutorial_surf, tutorial_rect = text_objects("tutorial", my_tutorial_font)
-    tutorial_rect.center = tutorial.center
-    screen.blit(tutorial_surf, tutorial_rect)
+    draw_text(16, tutorial, "tutorial")
 
 
 music_set = True
@@ -565,6 +621,13 @@ speed = 10
 fire = False
 fire_count = 0
 frame = 0
+
+
+def draw_text(px, rect, text):
+    my_text_font = pygame.font.Font("freesansbold.ttf", px)
+    text_surf, text_rect = text_objects(text, my_text_font)
+    text_rect.center = rect.center
+    screen.blit(text_surf, text_rect)
 
 
 def main():
