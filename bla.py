@@ -1,8 +1,9 @@
-import pygame.gfxdraw
 from os import listdir
 from os.path import isfile, join
 
-import pygame, math
+import math
+import pygame
+import pygame.gfxdraw
 
 from NiklasUndJansGeilesGame import my_color as c
 
@@ -67,7 +68,7 @@ class Tank(object):
         front_w = (center_w[0] - int(self.s_wepon.get_width() / 2 * math.sin(math.radians(rt_w + 90))),
                    center_w[1] - int(self.s_wepon.get_height() / 2 * math.cos(math.radians(rt_w + 90))))
         pygame.draw.circle(screen, (255, 128, 0),
-                           (front_w), 10, 2)
+                           front_w, 10, 2)
 
         r_bild = pygame.transform.rotate(player.s_bild, rt_t)
         r_wepon = pygame.transform.rotate(player.s_wepon, rt_w)
@@ -138,12 +139,12 @@ tank_polygon = {
 }
 
 
-def drawrec(rec, c=(255, 0, 0), i=3):
-    pygame.draw.circle(screen, c, rec.center, i)
-    pygame.draw.circle(screen, c, rec.topleft, i)
-    pygame.draw.circle(screen, c, rec.topright, i)
-    pygame.draw.circle(screen, c, rec.bottomleft, i)
-    pygame.draw.circle(screen, c, rec.bottomright, i)
+def drawrec(rec, color=(255, 0, 0), i=3):
+    pygame.draw.circle(screen, color, rec.center, i)
+    pygame.draw.circle(screen, color, rec.topleft, i)
+    pygame.draw.circle(screen, color, rec.topright, i)
+    pygame.draw.circle(screen, color, rec.bottomleft, i)
+    pygame.draw.circle(screen, color, rec.bottomright, i)
 
 
 player = Tank()
@@ -178,11 +179,11 @@ def exhaust_(coords=tank_polygon.get("t4")):
 
 
 def game():
-    cont_delay = 4
+    # cont_delay = 4
     rt = 0
     rot_speed = 2
     global fire
-    start_timer = cont_delay
+    # start_timer = cont_delay
 
     while True:
         for event in pygame.event.get():
@@ -197,7 +198,7 @@ def game():
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_ESCAPE:
                     pause_menu()
-                    start_timer = cont_delay
+                    # start_timer = cont_delay
 
         screen.fill(c.white)
         player.draw(rt, -rt, fire)
@@ -227,91 +228,81 @@ def draw_timer(timer):
 def pause_menu():
     pygame.gfxdraw.box(screen, (0, 0, displaywidth, displayheight), (128, 128, 128, 128))
     pygame.display.flip()
-    pause = pygame.Rect(displaywidth/5, displayheight/5, displaywidth*0.6, displayheight*0.6)
+    pause = pygame.Rect(displaywidth / 5, displayheight / 5, displaywidth * 0.6, displayheight * 0.6)
 
     tytel = pygame.Rect(pause.left + pause.width / 2 - 50, pause.top + 20, 100, 40)
-    esc = pygame.Rect(pause.left + pause.width/2 - 50, pause.bottom - 150, 100, 40)
-    restart = pygame.Rect(pause.left + pause.width/2 - 50, pause.bottom - 100, 100, 40)
-    resume = pygame.Rect(pause.left + pause.width/2 - 50, pause.bottom - 50, 100, 40)
-    settings = pygame.Rect(pause.right - 50, pause.top-10, 40, 40)
-    loop = True
+    esc = pygame.Rect(pause.left + pause.width / 2 - 50, pause.bottom - 150, 100, 40)
+    restart = pygame.Rect(pause.left + pause.width / 2 - 50, pause.bottom - 100, 100, 40)
+    resume = pygame.Rect(pause.left + pause.width / 2 - 50, pause.bottom - 50, 100, 40)
+    settings = pygame.Rect(pause.right - 50, pause.top + 10, 40, 40)
 
-    while loop:
+    while True:
         pygame.draw.rect(screen, (0, 0, 255), pause)
 
         mouse_pos = pygame.mouse.get_pos()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    main()
-                if event.key == pygame.K_r:
-                    game()
-                if event.key == pygame.K_SPACE:
-                    return
 
-        button_action(settings, mouse_pos, c.yellow, c.khaki, setting)
-        button_action(esc, mouse_pos, c.green, c.dark_green, main)
-        button_action(restart, mouse_pos, c.green, c.dark_green, main)
-        loop = button_action(resume, mouse_pos, c.green, c.dark_green, None)
-        if loop is None:
-            loop = True
+        set_btn = button_action(settings, mouse_pos, c.khaki, c.yellow)
+        esc_btn = button_action(esc, mouse_pos, c.dark_green, c.green)
+        re_btn = button_action(restart, mouse_pos, c.dark_green, c.green)
+        end_btn = button_action(resume, mouse_pos, c.dark_green, c.green)
 
         draw_text(32, tytel, "Pause")
         draw_text(20, restart, "restart")
         draw_text(20, esc, "quit")
         draw_text(20, resume, "resume")
 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    menu()
+                elif event.key == pygame.K_r:
+                    game()
+                elif event.key == pygame.K_SPACE:
+                    return
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                if set_btn:
+                    setting()
+                elif esc_btn:
+                    menu()
+                elif re_btn:
+                    game()
+                elif end_btn:
+                    return
+
         pygame.display.update(pause)
         clock.tick(60)
 
-    return
 
-
-def button_action(rect, mouse_pos, color1, color2, fnc=None):
+def button_action(rect, mouse_pos, c_n, c_hover):
     if rect.right > mouse_pos[0] > rect.left and rect.top < mouse_pos[1] < rect.bottom:
-        pygame.draw.rect(screen, color1, rect)
+        pygame.draw.rect(screen, c_hover, rect)
         if pygame.mouse.get_pressed() == (True, False, False):
-            if fnc:
-                fnc()
-            else:
-                return False
+            return True
     else:
-        pygame.draw.rect(screen, color2, rect)
+        pygame.draw.rect(screen, c_n, rect)
+        return False
 
 
 def play_tutorial():
     # TODO Bilder laden
     sheet = 0
     tytel = pygame.Rect(displaywidth / 2 - 100, 20, 200, 40)
-    next_btn = pygame.Rect(displaywidth - 50, displayheight / 2, 40, 40)
-    prev_btn = pygame.Rect(10, displayheight / 2, 40, 40)
+    nextp = pygame.Rect(displaywidth - 50, displayheight / 2, 40, 40)
+    prevp = pygame.Rect(10, displayheight / 2, 40, 40)
     esc = pygame.Rect(10, 10, 40, 40)
 
     while True:
         screen.fill(c.white)
         mouse_pos = pygame.mouse.get_pos()
-        pygame.draw.rect(screen, c.dark_grey, next_btn)
-        pygame.draw.rect(screen, c.dark_grey, prev_btn)
-        pygame.draw.rect(screen, c.dark_red, esc)
 
-        if next_btn.right > mouse_pos[0] > next_btn.left and next_btn.top < mouse_pos[1] < next_btn.bottom:
-            pygame.draw.rect(screen, c.grey, next_btn)
-            next_s = True
-        else:
-            next_s = False
-        if prev_btn.right > mouse_pos[0] > prev_btn.left and prev_btn.top < mouse_pos[1] < prev_btn.bottom:
-            pygame.draw.rect(screen, c.grey, prev_btn)
-            prev_s = True
-        else:
-            prev_s = False
-
-        if esc.right > mouse_pos[0] > esc.left and esc.top < mouse_pos[1] < esc.bottom:
-            pygame.draw.rect(screen, c.red, esc)
-            if pygame.mouse.get_pressed() == (True, False, False):
-                return
+        nxt_btn = button_action(nextp, mouse_pos, c.dark_grey, c.grey)
+        prv_btn = button_action(prevp, mouse_pos, c.dark_grey, c.grey)
+        esc_btn = button_action(esc, mouse_pos, c.dark_red, c.red)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -319,16 +310,18 @@ def play_tutorial():
                 quit()
 
             if event.type == pygame.MOUSEBUTTONUP:
-                if next_s:
+                if nxt_btn:
                     if sheet + 1 == len(tutorialSheets):
                         sheet = 0
                     else:
                         sheet += 1
-                elif prev_s:
+                elif prv_btn:
                     if sheet <= 0:
                         sheet = len(tutorialSheets) - 1
                     else:
                         sheet -= 1
+                elif esc_btn:
+                    return
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:
@@ -336,13 +329,13 @@ def play_tutorial():
                         sheet = 0
                     else:
                         sheet += 1
-                if event.key == pygame.K_LEFT:
+                elif event.key == pygame.K_LEFT:
                     if sheet <= 0:
                         sheet = len(tutorialSheets) - 1
                     else:
                         sheet -= 1
 
-                if event.key == pygame.K_ESCAPE:
+                elif event.key == pygame.K_ESCAPE:
                     return
 
         s_sheet = pygame.transform.scale(tutorialSheets[sheet], (displaywidth, displayheight))
@@ -355,90 +348,34 @@ def play_tutorial():
         clock.tick(60)
 
 
-def settings_die4te():
-    def pause_menu():
+def setting(m=0):
+    if m:
         pygame.gfxdraw.box(screen, (0, 0, displaywidth, displayheight), (128, 128, 128, 128))
         pygame.display.flip()
-        pause = pygame.Rect(displaywidth / 5, displayheight / 5, displaywidth * 0.6, displayheight * 0.6)
 
-        tytel = pygame.Rect(pause.left + pause.width / 2 - 50, pause.top + 20, 100, 40)
-        esc = pygame.Rect(pause.left + pause.width / 2 - 50, pause.bottom - 150, 100, 40)
-        restart = pygame.Rect(pause.left + pause.width / 2 - 50, pause.bottom - 100, 100, 40)
-        resume = pygame.Rect(pause.left + pause.width / 2 - 50, pause.bottom - 50, 100, 40)
-        settings = pygame.Rect(pause.right - 50, pause.top - 10, 40, 40)
-        loop = True
-
-        while loop:
-            pygame.draw.rect(screen, (0, 0, 255), pause)
-
-            mouse_pos = pygame.mouse.get_pos()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        main()
-                    if event.key == pygame.K_r:
-                        game()
-                    if event.key == pygame.K_SPACE:
-                        return
-
-            button_action(settings, mouse_pos, c.yellow, c.khaki, setting)
-            button_action(esc, mouse_pos, c.green, c.dark_green, main)
-            button_action(restart, mouse_pos, c.green, c.dark_green, main)
-            loop = button_action(resume, mouse_pos, c.green, c.dark_green, None)
-            if loop is None:
-                loop = True
-
-            draw_text(32, tytel, "Pause")
-            draw_text(20, restart, "restart")
-            draw_text(20, esc, "quit")
-            draw_text(20, resume, "resume")
-
-            pygame.display.update(pause)
-            clock.tick(60)
-
-        return
-
-
-def work_setting():
-    # TODO Bilder laden
     global music_set, sound_set
 
-    esc = pygame.Rect(10, 10, 40, 40)
-    tytel = pygame.Rect(displaywidth / 2 - 100, 20, 200, 40)
+    settings = pygame.Rect(displaywidth / 5, displayheight / 5, displaywidth * 0.6, displayheight * 0.6)
 
-    music = pygame.Rect(displaywidth / 2 - 50, displayheight / 2, 200, 40)
-    music_txt = pygame.Rect(music.left, music.top, 50, 40)
-    music_sym = pygame.Rect(music.left + music_txt.width + 5, music.top, 40, 40)
-    sound = pygame.Rect(displaywidth / 2 - 50, displayheight / 2 + 60, 200, 40)
-    sound_txt = pygame.Rect(sound.left, sound.top, 50, 40)
-    sound_sym = pygame.Rect(sound.left + sound_txt.width + 5, sound.top, 40, 40)
+    tytel = pygame.Rect(settings.left + settings.width / 2 - 50, settings.top + 20, 100, 40)
+    esc = pygame.Rect(settings.left + 10, settings.top + 10, 40, 40)
+    music_txt = pygame.Rect(settings.left + settings.width / 2 - 75, settings.bottom - 150, 100, 40)
+    sound_txt = pygame.Rect(settings.left + settings.width / 2 - 75, settings.bottom - 100, 100, 40)
+    music_sym = pygame.Rect(music_txt.right + 10, music_txt.top, 40, 40)
+    sound_sym = pygame.Rect(sound_txt.right + 10, sound_txt.top, 40, 40)
 
     while True:
-        screen.fill(c.white)
-        pygame.draw.rect(screen, c.dark_orange, music_sym)
-        pygame.draw.rect(screen, c.dark_orange, sound_sym)
-        pygame.draw.rect(screen, c.dark_red, esc)
+        pygame.draw.rect(screen, (0, 0, 255), settings)
 
         mouse_pos = pygame.mouse.get_pos()
 
-        if music_sym.right > mouse_pos[0] > music_sym.left and music_sym.top < mouse_pos[1] < music_sym.bottom:
-            pygame.draw.rect(screen, c.orange, music_sym)
-            music_s = True
-        else:
-            music_s = False
-        if sound_sym.right > mouse_pos[0] > sound_sym.left and sound_sym.top < mouse_pos[1] < sound_sym.bottom:
-            pygame.draw.rect(screen, c.orange, sound_sym)
-            sound_s = True
-        else:
-            sound_s = False
+        mus_btn = button_action(music_sym, mouse_pos, c.dark_orange, c.orange)
+        sou_btn = button_action(sound_sym, mouse_pos, c.dark_orange, c.orange)
+        esc_btn = button_action(esc, mouse_pos, c.dark_red, c.red)
 
-        if esc.right > mouse_pos[0] > esc.left and esc.top < mouse_pos[1] < esc.bottom:
-            pygame.draw.rect(screen, c.red, esc)
-            if pygame.mouse.get_pressed() == (True, False, False):
-                return
+        draw_text(32, tytel, "Settings")
+        draw_text(20, music_txt, "music")
+        draw_text(20, sound_txt, "sound")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -446,16 +383,18 @@ def work_setting():
                 quit()
 
             if event.type == pygame.MOUSEBUTTONUP:
-                if music_s:
+                if mus_btn:
                     if music_set:
                         music_set = False
                     else:
                         music_set = True
-                if sound_s:
+                elif sou_btn:
                     if sound_set:
                         sound_set = False
                     else:
                         sound_set = True
+                elif esc_btn:
+                    return
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_ESCAPE:
@@ -468,150 +407,23 @@ def work_setting():
             pygame.draw.line(screen, c.red, sound_sym.topleft, sound_sym.bottomright, 2)
             pygame.draw.line(screen, c.red, sound_sym.topright, sound_sym.bottomleft, 2)
 
-        # setting text
-        my_music_font = pygame.font.Font("freesansbold.ttf", 16)
-        music_surf, music_rect = text_objects("Music", my_music_font)
-        music_rect.center = music_txt.center
-        screen.blit(music_surf, music_rect)
-        sound_surf, sound_rect = text_objects("Sound", my_music_font)
-        sound_rect.center = sound_txt.center
-        screen.blit(sound_surf, sound_rect)
-
-        # tytel text
-        my_tytel_font = pygame.font.Font("freesansbold.ttf", 32)
-        tytel_surf, tytel_rect = text_objects("Settings", my_tytel_font)
-        tytel_rect.center = tytel.center
-        screen.blit(tytel_surf, tytel_rect)
-
-        pygame.display.flip()
+        pygame.display.update(settings)
         clock.tick(60)
 
 
-def setting():
-    esc = pygame.Rect(10, 10, 40, 40)
-    tytel = pygame.Rect(displaywidth / 2 - 100, 20, 200, 40)
-
-
-    while True:
-        screen.fill(c.white)
-        pygame.draw.rect(screen, c.dark_red, esc)
-
-        mouse_pos = pygame.mouse.get_pos()
-
-        if esc.right > mouse_pos[0] > esc.left and esc.top < mouse_pos[1] < esc.bottom:
-            pygame.draw.rect(screen, c.red, esc)
-            if pygame.mouse.get_pressed() == (True, False, False):
-                return
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_ESCAPE:
-                    return
-
-        setting_draw()
-
-        # tytel text
-        my_tytel_font = pygame.font.Font("freesansbold.ttf", 32)
-        tytel_surf, tytel_rect = text_objects("Settings", my_tytel_font)
-        tytel_rect.center = tytel.center
-        screen.blit(tytel_surf, tytel_rect)
-        pygame.display.flip()
-        clock.tick(60)
-
-
-def setting_draw():
-    # TODO Bilder laden
-    global music_set, sound_set
-
-    music = pygame.Rect(displaywidth / 2 - 50, displayheight / 2, 200, 40)
-    music_txt = pygame.Rect(music.left, music.top, 50, 40)
-    music_sym = pygame.Rect(music.left + music_txt.width + 5, music.top, 40, 40)
-    sound = pygame.Rect(displaywidth / 2 - 50, displayheight / 2 + 60, 200, 40)
-    sound_txt = pygame.Rect(sound.left, sound.top, 50, 40)
-    sound_sym = pygame.Rect(sound.left + sound_txt.width + 5, sound.top, 40, 40)
-
-    #while True:
-    pygame.draw.rect(screen, c.dark_orange, music_sym)
-    pygame.draw.rect(screen, c.dark_orange, sound_sym)
-
-    mouse_pos = pygame.mouse.get_pos()
-
-    if music_sym.right > mouse_pos[0] > music_sym.left and music_sym.top < mouse_pos[1] < music_sym.bottom:
-        pygame.draw.rect(screen, c.orange, music_sym)
-
-        music_hover = True
-    else:
-        music_hover = False
-    if sound_sym.right > mouse_pos[0] > sound_sym.left and sound_sym.top < mouse_pos[1] < sound_sym.bottom:
-        pygame.draw.rect(screen, c.orange, sound_sym)
-        sound_hover = True
-    else:
-        sound_hover = False
-
-
-        if music_hover:
-            if music_set:
-                music_set = False
-            else:
-                music_set = True
-        if sound_hover:
-            if sound_set:
-                sound_set = False
-            else:
-                sound_set = True
-
-    if not music_set:
-        pygame.draw.line(screen, c.red, music_sym.topleft, music_sym.bottomright, 2)
-        pygame.draw.line(screen, c.red, music_sym.topright, music_sym.bottomleft, 2)
-    if not sound_set:
-        pygame.draw.line(screen, c.red, sound_sym.topleft, sound_sym.bottomright, 2)
-        pygame.draw.line(screen, c.red, sound_sym.topright, sound_sym.bottomleft, 2)
-
-        # setting text
-    my_music_font = pygame.font.Font("freesansbold.ttf", 16)
-    music_surf, music_rect = text_objects("Music", my_music_font)
-    music_rect.center = music_txt.center
-    screen.blit(music_surf, music_rect)
-    sound_surf, sound_rect = text_objects("Sound", my_music_font)
-    sound_rect.center = sound_txt.center
-    screen.blit(sound_surf, sound_rect)
-
-    # pygame.display.flip()
-    # clock.tick(60)
-
-
-# ________________MENU________________
-def text_objects(text="", font="", color=c.black):
+def text_objects(font=("freesansbold.ttf", 12), text="",  color=c.black):
     text_surface = font.render(text, True, color)
     return text_surface, text_surface.get_rect()
 
 
-def draw_menu(mouse_pos):
-    # TODO Bilder laden
-    tytel = pygame.Rect(displaywidth / 2 - 50, displayheight / 2 - 20, 100, 40)
-    start = pygame.Rect(displaywidth / 2 - 150, displayheight / 2 + 70, 300, 50)
-    tutorial = pygame.Rect(displaywidth / 2 - 125, displayheight / 2 + 145, 250, 40)
-    settings = pygame.Rect(displaywidth - 50, 10, 40, 40)
-
-    # Start-Button
-    button_action(start, mouse_pos, c.green, c.dark_green, game)
-    # Tutorial-Button
-    button_action(tutorial, mouse_pos, c.blue, c.dark_blue, play_tutorial)
-    # Setting-Button
-    button_action(settings, mouse_pos, c.yellow, c.khaki, setting)
-
-    # tytel text
-    draw_text(45, tytel, "NiklasUndJansGeilesGame")
-    # start text
-    draw_text(20, start, "start")
-    # tutorial text
-    draw_text(16, tutorial, "tutorial")
+def draw_text(px, rect, text):
+    my_text_font = pygame.font.Font("freesansbold.ttf", px)
+    text_surf, text_rect = text_objects(my_text_font, text)
+    text_rect.center = rect.center
+    screen.blit(text_surf, text_rect)
 
 
+# ________________MENU________________
 music_set = True
 sound_set = True
 
@@ -623,16 +435,24 @@ fire_count = 0
 frame = 0
 
 
-def draw_text(px, rect, text):
-    my_text_font = pygame.font.Font("freesansbold.ttf", px)
-    text_surf, text_rect = text_objects(text, my_text_font)
-    text_rect.center = rect.center
-    screen.blit(text_surf, text_rect)
-
-
-def main():
+def menu():
     while True:
         screen.fill(c.white)
+        mouse_pos = pygame.mouse.get_pos()
+
+        # TODO Bilder laden
+        tytel = pygame.Rect(displaywidth / 2 - 50, displayheight / 2 - 20, 100, 40)
+        start = pygame.Rect(displaywidth / 2 - 150, displayheight / 2 + 70, 300, 50)
+        tutorial = pygame.Rect(displaywidth / 2 - 125, displayheight / 2 + 145, 250, 40)
+        settings = pygame.Rect(displaywidth - 50, 10, 40, 40)
+
+        sta_btn = button_action(start, mouse_pos, c.dark_green, c.green)
+        tut_btn = button_action(tutorial, mouse_pos, c.dark_blue, c.blue)
+        set_btn = button_action(settings, mouse_pos, c.khaki, c.yellow)
+
+        draw_text(45, tytel, "NiklasUndJansGeilesGame")
+        draw_text(20, start, "start")
+        draw_text(16, tutorial, "tutorial")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -643,16 +463,20 @@ def main():
                 if event.key == pygame.K_SPACE:
                     game()
                 elif event.key == pygame.K_s:
-                    setting()
+                    setting(1)
                 elif event.key == pygame.K_t:
                     play_tutorial()
 
-        mouse = pygame.mouse.get_pos()
-        # setting(mouse)
-        draw_menu(mouse)
+            if event.type == pygame.MOUSEBUTTONUP:
+                if sta_btn:
+                    game()
+                elif set_btn:
+                    setting(1)
+                elif tut_btn:
+                    play_tutorial()
 
         pygame.display.flip()
         clock.tick(60)
 
 
-main()
+menu()
