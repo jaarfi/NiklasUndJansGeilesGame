@@ -13,6 +13,28 @@ class shellStates(enum.Enum):
     FLYING = 2
     EXPLODING = 3
 
+class playerControls(enum.Enum):
+
+    class FIRST(enum.Enum):
+        RIGHT = pg.K_RIGHT
+        LEFT = pg.K_LEFT
+        DOWN = pg.K_DOWN
+        UP = pg.K_UP
+        CYCLE = pg.K_PERIOD
+        FIRE = pg.K_COMMA
+
+        TextureLocation = "pics/tank/tank_model_1.png"
+
+    class SECOND(enum.Enum):
+        RIGHT = pg.K_d
+        LEFT = pg.K_a
+        DOWN = pg.K_w
+        UP = pg.K_s
+        CYCLE = pg.K_q
+        FIRE = pg.K_e
+
+        TextureLocation = "pics/tank/tank_model_2_1_b.png"
+
 class shellTypes(enum.Enum):
 
     class NORMAL(enum.Enum):
@@ -95,7 +117,7 @@ class shellTypes(enum.Enum):
         SPEED = 15
         GRAVITY = 0
         DAMAGE = 25
-        RELOAD = 0.1
+        RELOAD = 3
         SIZE = 10
         SEEKING = True
         NAME = "Skymine"
@@ -141,8 +163,8 @@ class shellTypes(enum.Enum):
         SEEKDISTANCE = 0
         POSTLOCKONSPEED = 0
 
-        NUMBEROFSHELLS = 15
-        SPREAD = 10
+        NUMBEROFSHELLS = 10
+        SPREAD = 45
 
 
     def next(self):
@@ -352,23 +374,25 @@ class Game(object):
         self.clock = pg.time.Clock()
         self.fps = 60
         self.font = font
-        self.map = Map(Polygon(self.createMap(self.width, self.heigth)),self)
         self.players = []
-        self.players.append(Tank(self))
-        self.players.append(Tank(self))
+        self.players.append(Tank(self,1))
+        self.players.append(Tank(self,2))
         self.drawableObjects = []
         self.collisionObjects = []
+        self.map = 0
+
+
+    def startGame(self):
+        self.map = Map(Polygon(self.createMap(self.width, self.heigth)),self)
         self.collisionObjects.append(self.map)
         for player in self.players:
             player.move(self.map)
             self.collisionObjects.append(player)
         for thing in self.collisionObjects:
             self.drawableObjects.append(thing)
-
-
-    def startGame(self):
         while True:
-            self.players[0].move(self.map)
+            for player in self.players:
+                player.move(self.map)
             for event in pg.event.get():
                 if event.type == QUIT:
                     pg.quit()
@@ -395,7 +419,7 @@ class Game(object):
 
 
 class Tank(MovablePhysicsObject):
-    def __init__(self, gameinstance):
+    def __init__(self, gameinstance, playernumber):
         color = pg.Color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
         super().__init__(Polygon([(2,38),(21,57),(87,58),(103,45),(103,15),(76,17),(76,0),(34,0),(35,16),(18,16)]),gameinstance,[0,0],0, color)
         self.angle = -45
@@ -409,26 +433,32 @@ class Tank(MovablePhysicsObject):
         self.texture = pg.transform.scale(self.texture, (104, 59))
         self.cannonTexture = pg.image.load("pics/tank/tank_model_1_w1.png")
         self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
-
+        self.keydown = False
+        if playernumber == 1:
+            self.config = playerControls.FIRST
+        else:
+            self.config = playerControls.SECOND
 
     def move(self, map):
         key = pg.key.get_pressed()
-        if key[pg.K_LEFT]:
+        if key[self.config.value.LEFT.value]:
             self.changeVectorBy(-0.02, 0)
             self.speed = 3
             self.groundedCorner = 2
-        elif key[pg.K_RIGHT]:
+        elif key[self.config.value.RIGHT.value]:
             self.changeVectorBy(0.02, 0)
             self.speed = 3
             self.groundedCorner = 1
-        if key[pg.K_UP]:
+        if key[self.config.value.UP.value]:
             self.angle += 1
-        if key[pg.K_DOWN]:
+        if key[self.config.value.DOWN.value]:
             self.angle -= 1
-        for event in pg.event.get():
-            if event.type == pg.KEYUP and event.key == pg.K_PERIOD:
-                self.currentlySelectedShell = self.currentlySelectedShell.next()
-        if key[pg.K_SPACE]:
+        if key[self.config.value.CYCLE.value]:
+            self.keydown = True
+        elif self.keydown:
+            self.keydown = False
+            self.currentlySelectedShell = self.currentlySelectedShell.next()
+        if key[self.config.value.FIRE.value]:
             self.fireShell()
         if self.physicsMoveNewPolygon().exterior.coords[1][0] > 1 and self.physicsMoveNewPolygon().exterior.coords[2][0] < self.gameInstance.width -1:
             self.physicsMove()
@@ -446,13 +476,13 @@ class Tank(MovablePhysicsObject):
         if self.timeToLoad <= 0:
             tmpCoords = self.getCoords()
             if self.currentlySelectedShell.value.NUMBEROFSHELLS.value > 1:
+                self.angle -= self.currentlySelectedShell.value.SPREAD.value/2
                 for i in range(0,self.currentlySelectedShell.value.NUMBEROFSHELLS.value):
-                    if i == 0:
-                        self.angle -= self.currentlySelectedShell.value.SPREAD.value/2
-                    self.angle += self.currentlySelectedShell.value.SPREAD.value*i/(self.currentlySelectedShell.value.NUMBEROFSHELLS.value-1)
+                    self.angle += self.currentlySelectedShell.value.SPREAD.value/(self.currentlySelectedShell.value.NUMBEROFSHELLS.value-1)
                     self.firingVector = [math.cos(math.radians(self.angle))*100, math.sin(math.radians(self.angle))*100]
                     shellPolygon = Polygon([(tmpCoords[0], tmpCoords[1]+5), (tmpCoords[0]+5, tmpCoords[1]+5),(tmpCoords[0]+5, tmpCoords[1]),(tmpCoords[0], tmpCoords[1])])
                     self.shells.append(Shell(shellPolygon, self.gameInstance, self.firingVector, self.currentlySelectedShell, self))
+                self.angle -= self.currentlySelectedShell.value.SPREAD.value/2
             else:
 
                 shellPolygon = Polygon([(tmpCoords[0], tmpCoords[1] + 5), (tmpCoords[0] + 5, tmpCoords[1] + 5),
@@ -505,7 +535,7 @@ class Tank(MovablePhysicsObject):
         elif corner == 2:
             self.rotateBy(1, corner)
 
-        self.texture = pg.image.load("pics/tank/tank_model_1.png")
+        self.texture = pg.image.load(self.config.value.TextureLocation.value)
         self.texture = pg.transform.scale(self.texture, (104, 59))
         self.texture = pg.transform.rotate(self.texture, -self.rotation)
         self.cannonTexture = pg.image.load("pics/tank/tank_model_1_w1.png")
