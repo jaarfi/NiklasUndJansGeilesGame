@@ -7,6 +7,7 @@ from os import listdir
 from os.path import isfile, join
 from shapely.geometry import Polygon, Point, LineString
 from pygame.locals import *
+import Menu
 
 class shellStates(enum.Enum):
     IDLE = 1
@@ -333,7 +334,6 @@ class Shell(MovablePhysicsObject):
                 self.speed -= self.shellType.value.SPEED.value/(self.shellType.value.FLYTIME.value*60)
 
             if self.speed <= 0:
-                print("vektor 0")
                 self.changeVectorTo((0,0))
                 if not self.shellType.value.SEEKING.value:
                     self.safedelete()
@@ -399,6 +399,9 @@ class Game(object):
                 if event.type == QUIT:
                     pg.quit()
                     quit()
+                if event.type == KEYUP:
+                    if event.key == K_ESCAPE:
+                        Menu.pause_menu()
             self.display.fill((0, 0, 0))
 
             for toDraw in self.drawableObjects:
@@ -428,7 +431,7 @@ class Tank(MovablePhysicsObject):
         self.firingVector = [math.cos(math.radians(self.angle))*100, math.sin(math.radians(self.angle))*100]
         self.shells = []
         self.timeToLoad = 0
-        self.currentlySelectedShell = shellTypes.FLAK
+        self.currentlySelectedShell = shellTypes.NORMAL
         self.life = 100
         self.groundedCorner = 1
         self.texture = pg.image.load("pics/tank/tank_model_1.png")
@@ -472,7 +475,6 @@ class Tank(MovablePhysicsObject):
         self.speed = 0
         if self.timeToLoad > 0:
             self.timeToLoad -= 1
-
 
     def fireShell(self):
         if self.timeToLoad <= 0:

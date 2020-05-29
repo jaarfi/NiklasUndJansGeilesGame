@@ -5,6 +5,7 @@ import math
 import pygame
 import pygame.gfxdraw
 import my_color as c
+
 displaywidth = 800
 displayheight = 600
 half_w = int(displaywidth / 2)
@@ -513,4 +514,4 @@ btn_blue_in = pygame.image.load("pics/btn/BTN_BLUE_RECT_IN.png")
 btn_orange_out = pygame.image.load("pics/btn/BTN_ORANGE_RECT_OUT.png")
 btn_orange_in = pygame.image.load("pics/btn/BTN_ORANGE_RECT_IN.png")
 
-menu()
+#menu()
