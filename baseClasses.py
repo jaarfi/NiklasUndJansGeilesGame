@@ -391,8 +391,10 @@ class Game(object):
         for thing in self.collisionObjects:
             self.drawableObjects.append(thing)
         while True:
+            self.players[0].move(self.map)
             for player in self.players:
-                player.move(self.map)
+                pass
+                #player.move(self.map)
             for event in pg.event.get():
                 if event.type == QUIT:
                     pg.quit()
