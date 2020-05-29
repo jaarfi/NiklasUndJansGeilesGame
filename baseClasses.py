@@ -64,7 +64,7 @@ class shellTypes(enum.Enum):
     class LASER(enum.Enum):
         SPEED = 100
         GRAVITY = 0
-        DAMAGE = 50
+        DAMAGE = 49
         RELOAD = 5
         SIZE = 7
 
@@ -121,7 +121,7 @@ class shellTypes(enum.Enum):
     class SEEKINGMINE(enum.Enum):
         SPEED = 15
         GRAVITY = 0
-        DAMAGE = 25
+        DAMAGE = 11
         RELOAD = 3
         SIZE = 10
         SEEKING = True
@@ -320,9 +320,6 @@ class Shell(MovablePhysicsObject):
             self.physicsMove()
             self.changeVectorBy(0, self.gravity)
             newCoords = self.getCoords()
-            linee = LineString([newCoords,oldCoords])
-            if newCoords[0] > self.gameInstance.width or newCoords[0] < 0:
-                self.safedelete()
             self.collisionPolygon = Polygon([
                 (oldCoords[0],oldCoords[1]),
                 (oldCoords[0]+self.shellType.value.SIZE.value, oldCoords[1]+self.shellType.value.SIZE.value),
@@ -332,7 +329,8 @@ class Shell(MovablePhysicsObject):
             for thing in self.gameInstance.collisionObjects:
                 if thing.polygon.intersects(self.collisionPolygon) and thing != self and thing != self.tank and not thing in self.tank.shells:
                     thing.hit(self.shellType.value.DAMAGE.value)
-                    self.explode()
+                    intersection = self.collisionPolygon.intersection(thing.polygon)
+                    self.explode(intersection)
 
 
             if self.remainingFlyingTime > 0:
@@ -350,6 +348,9 @@ class Shell(MovablePhysicsObject):
             if self.remainingTimeTillSeek <= 0:
                 self.startSeeking()
 
+            if newCoords[0] > self.gameInstance.width or newCoords[0] < 0 and self.shellState != shellStates.EXPLODING:
+                self.safedelete()
+
     def draw(self, display):
         if self.shellState == shellStates.FLYING:
             pg.gfxdraw.filled_polygon(display, self.collisionPolygon.exterior.coords, self.color)
@@ -357,9 +358,9 @@ class Shell(MovablePhysicsObject):
             if self.explosion.draw(display):
                 self.safedelete()
 
-    def explode(self):
-        self.explosion = Explosion(self.polygon, self.gameInstance)
-        self.shellState = shellStates. EXPLODING
+    def explode(self, poly):
+        self.explosion = Explosion(poly, self.gameInstance)
+        self.shellState = shellStates.EXPLODING
 
     def safedelete(self):
         if self in self.tank.shells:
