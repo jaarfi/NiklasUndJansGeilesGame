@@ -24,7 +24,9 @@ class playerControls(enum.Enum):
         CYCLE = pg.K_PERIOD
         FIRE = pg.K_COMMA
 
-        TextureLocation = "pics/tank/tank_model_1.png"
+        TextureLocation = "pics/tank/tank_1_b.png"
+        WeaponLocation = "pics/tank/wapon_1_b.png"
+        Color = pg.Color(32, 137, 235)
 
     class SECOND(enum.Enum):
         RIGHT = pg.K_d
@@ -34,7 +36,9 @@ class playerControls(enum.Enum):
         CYCLE = pg.K_q
         FIRE = pg.K_e
 
-        TextureLocation = "pics/tank/tank_model_2_1_b.png"
+        TextureLocation = "pics/tank/tank_1_g.png"
+        WeaponLocation = "pics/tank/wapon_1_g.png"
+        Color = pg.Color(164,226,68)
 
 class shellTypes(enum.Enum):
 
@@ -316,6 +320,7 @@ class Shell(MovablePhysicsObject):
             self.physicsMove()
             self.changeVectorBy(0, self.gravity)
             newCoords = self.getCoords()
+            linee = LineString([newCoords,oldCoords])
             if newCoords[0] > self.gameInstance.width or newCoords[0] < 0:
                 self.safedelete()
             self.collisionPolygon = Polygon([
@@ -328,6 +333,7 @@ class Shell(MovablePhysicsObject):
                 if thing.polygon.intersects(self.collisionPolygon) and thing != self and thing != self.tank and not thing in self.tank.shells:
                     thing.hit(self.shellType.value.DAMAGE.value)
                     self.explode()
+
 
             if self.remainingFlyingTime > 0:
                 self.remainingFlyingTime -= 1
@@ -369,21 +375,21 @@ class Shell(MovablePhysicsObject):
 class Game(object):
     def __init__(self, width, heigth, display, font):
         self.width = width
-        self.heigth = heigth
+        self.height = heigth
         self.display = display
         self.clock = pg.time.Clock()
         self.fps = 60
         self.font = font
         self.players = []
-        self.players.append(Tank(self,1))
-        self.players.append(Tank(self,2))
+        self.players.append(Tank(self, 1))
+        self.players.append(Tank(self, 2))
         self.drawableObjects = []
         self.collisionObjects = []
         self.map = 0
 
 
     def startGame(self):
-        self.map = Map(Polygon(self.createMap(self.width, self.heigth)),self)
+        self.map = Map(Polygon(self.createMap(self.width, self.height)), self)
         self.collisionObjects.append(self.map)
         for player in self.players:
             player.move(self.map)
@@ -425,8 +431,19 @@ class Game(object):
 
 class Tank(MovablePhysicsObject):
     def __init__(self, gameinstance, playernumber):
-        color = pg.Color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+
+        if playernumber == 1:
+            self.config = playerControls.FIRST
+        else:
+            self.config = playerControls.SECOND
+
+        color = self.config.value.Color.value
         super().__init__(Polygon([(2,38),(21,57),(87,58),(103,45),(103,15),(76,17),(76,0),(34,0),(35,16),(18,16)]),gameinstance,[0,0],0, color)
+        if playernumber == 1:
+            startpos = (self.gameInstance.width-50,0)
+        else:
+            startpos = (50,50)
+        self.moveTo(startpos)
         self.angle = -45
         self.firingVector = [math.cos(math.radians(self.angle))*100, math.sin(math.radians(self.angle))*100]
         self.shells = []
@@ -434,15 +451,11 @@ class Tank(MovablePhysicsObject):
         self.currentlySelectedShell = shellTypes.NORMAL
         self.life = 100
         self.groundedCorner = 1
-        self.texture = pg.image.load("pics/tank/tank_model_1.png")
-        self.texture = pg.transform.scale(self.texture, (104, 59))
-        self.cannonTexture = pg.image.load("pics/tank/tank_model_1_w1.png")
-        self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
         self.keydown = False
-        if playernumber == 1:
-            self.config = playerControls.FIRST
-        else:
-            self.config = playerControls.SECOND
+        self.texture = pg.image.load(self.config.value.TextureLocation.value)
+        self.texture = pg.transform.scale(self.texture, (104, 59))
+        self.cannonTexture = pg.image.load(self.config.value.WeaponLocation.value)
+        self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
 
     def move(self, map):
         key = pg.key.get_pressed()
@@ -462,7 +475,8 @@ class Tank(MovablePhysicsObject):
             self.keydown = True
         elif self.keydown:
             self.keydown = False
-            self.currentlySelectedShell = self.currentlySelectedShell.next()
+            if self.timeToLoad <= 0:
+                self.currentlySelectedShell = self.currentlySelectedShell.next()
         if key[self.config.value.FIRE.value]:
             self.fireShell()
         if self.physicsMoveNewPolygon().exterior.coords[1][0] > 1 and self.physicsMoveNewPolygon().exterior.coords[2][0] < self.gameInstance.width -1:
@@ -504,9 +518,12 @@ class Tank(MovablePhysicsObject):
     def draw(self, display):
         tmpCoords = (int(self.getCoords()[0]), int(self.getCoords()[1]))
         #super().draw(display)
-        pg.draw.line(display, self.color, (tmpCoords[0], tmpCoords[1]+50), (tmpCoords[0]+self.life, tmpCoords[1]+50), 10) #Die Hp Anzeige zeichnen
-        pg.draw.line(display, self.color, (tmpCoords[0]-50, tmpCoords[1]), (tmpCoords[0]-50, tmpCoords[1]+self.timeToLoad), 10) #Die Hp Anzeige zeichnen
-        #pg.draw.line(display, self.color, (tmpCoords[0], tmpCoords[1]), (tmpCoords[0]+self.firingVector[0], tmpCoords[1]+self.firingVector[1]), 1) #Die Hp Anzeige zeichnen
+
+        if self.config == playerControls.FIRST:
+            pg.draw.line(display, self.color, (self.gameInstance.width - 250, self.gameInstance.height - 30),(self.gameInstance.width - 250 + self.life * 2, self.gameInstance.height - 30), 30)  # Die Hp Anzeige zeichnen
+        else:
+            pg.draw.line(display, self.color, (50, self.gameInstance.height - 30),(50 +self.life * 2, self.gameInstance.height - 30), 30)  # Die Hp Anzeige zeichnen
+
         for shell in self.shells:
             shell.draw(display)
 
@@ -518,7 +535,15 @@ class Tank(MovablePhysicsObject):
         display.blit(self.texture,pos)
 
         textsurface = self.gameInstance.font.render(self.currentlySelectedShell.value.NAME.value, False, self.color)
-        display.blit(textsurface, self.getCoords())
+        if self.config == playerControls.FIRST:
+            display.blit(textsurface, (self.gameInstance.width - 250, self.gameInstance.height - 90))
+            textsurface = self.gameInstance.font.render(str(self.timeToLoad/self.gameInstance.fps)[:4], False, self.color)
+            display.blit(textsurface, (self.gameInstance.width - 250, self.gameInstance.height - 120))
+        else:
+            display.blit(textsurface, (50, self.gameInstance.height - 90))
+            textsurface = self.gameInstance.font.render(str(self.timeToLoad/self.gameInstance.fps)[:4], False, self.color)
+            display.blit(textsurface, (50, self.gameInstance.height - 120))
+
 
     def rotateToGround(self,map,corner):
         while not map.polygon.contains(Point(self.polygon.exterior.coords[corner])):
@@ -542,7 +567,7 @@ class Tank(MovablePhysicsObject):
         self.texture = pg.image.load(self.config.value.TextureLocation.value)
         self.texture = pg.transform.scale(self.texture, (104, 59))
         self.texture = pg.transform.rotate(self.texture, -self.rotation)
-        self.cannonTexture = pg.image.load("pics/tank/tank_model_1_w1.png")
+        self.cannonTexture = pg.image.load(self.config.value.WeaponLocation.value)
         self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
         self.cannonTexture = pg.transform.rotate(self.cannonTexture, -self.angle)
         self.cannonTexture = pg.transform.rotate(self.cannonTexture, -180)
