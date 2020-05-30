@@ -14,6 +14,32 @@ class shellStates(enum.Enum):
     FLYING = 2
     EXPLODING = 3
 
+class playerControls(enum.Enum):
+
+    class FIRST(enum.Enum):
+        RIGHT = pg.K_RIGHT
+        LEFT = pg.K_LEFT
+        DOWN = pg.K_DOWN
+        UP = pg.K_UP
+        CYCLE = pg.K_PERIOD
+        FIRE = pg.K_COMMA
+
+        TextureLocation = "pics/tank/tank_1_b.png"
+        WeaponLocation = "pics/tank/wapon_1_b.png"
+        Color = pg.Color(32, 137, 235)
+
+    class SECOND(enum.Enum):
+        RIGHT = pg.K_d
+        LEFT = pg.K_a
+        DOWN = pg.K_w
+        UP = pg.K_s
+        CYCLE = pg.K_q
+        FIRE = pg.K_e
+
+        TextureLocation = "pics/tank/tank_1_g.png"
+        WeaponLocation = "pics/tank/wapon_1_g.png"
+        Color = pg.Color(164,226,68)
+
 class shellTypes(enum.Enum):
 
     class NORMAL(enum.Enum):
@@ -30,27 +56,39 @@ class shellTypes(enum.Enum):
         SEEKDISTANCE = 0
         SEEKINGGRAVITY = 0
         POSTLOCKONSPEED = 0
+        POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-    class LASER(enum.Enum):
+        textureLocation = "pics/sprites/Medium_Shell.png"
+
+        EXPLOSIONSIZE = 0.7
+        EXPLOSIONTIME = 1
+
+    class SNIPER(enum.Enum):
         SPEED = 100
         GRAVITY = 0
-        DAMAGE = 50
+        DAMAGE = 49
         RELOAD = 5
         SIZE = 7
 
         SEEKING = False
-        NAME = "Laser Gun"
+        NAME = "Sniper Gun"
         FLYTIME = float("inf")
         TIMETILLSEEK = 0
         SEEKDISTANCE = 0
         SEEKINGGRAVITY = 0
         POSTLOCKONSPEED= 0
+        POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
+
+        textureLocation = "pics/sprites/Sniper_Shell.png"
+
+        EXPLOSIONSIZE = 1
+        EXPLOSIONTIME = 1
 
     class MACHINEGUN(enum.Enum):
         SPEED = 100
@@ -66,11 +104,17 @@ class shellTypes(enum.Enum):
         SEEKDISTANCE = 0
         SEEKINGGRAVITY = 0
         POSTLOCKONSPEED= 0
+        POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-    class SEEKINGROCKET(enum.Enum):
+        textureLocation = "pics/sprites/Light_Shell.png"
+
+        EXPLOSIONSIZE = 0.2
+        EXPLOSIONTIME = 0.5
+
+    class GRAVITRONROCKET(enum.Enum):
         SPEED = 10
         GRAVITY = 0.05
         DAMAGE = 12
@@ -78,50 +122,89 @@ class shellTypes(enum.Enum):
         SIZE = 10
 
         SEEKING = True
-        NAME = "Seeking Rocket"
+        NAME = "Gravitron Rocket"
         FLYTIME = float("inf")
         TIMETILLSEEK = 0.5
-        SEEKDISTANCE = 15
-        SEEKINGGRAVITY = 10
-        POSTLOCKONSPEED= 10
+        SEEKDISTANCE = 1500
+        SEEKINGGRAVITY = 0
+        POSTLOCKONSPEED = 10
+        POSTLOCKONACCELERATION = 1
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
+        textureLocation = "pics/sprites/Heavy_Shell.png"
+
+        EXPLOSIONSIZE = 0.8
+        EXPLOSIONTIME = 1
+
     class SEEKINGMINE(enum.Enum):
-        SPEED = 4
+        SPEED = 15
         GRAVITY = 0
-        DAMAGE = 25
-        RELOAD = 0.1
+        DAMAGE = 11
+        RELOAD = 3
         SIZE = 10
         SEEKING = True
         NAME = "Skymine"
 
         FLYTIME = 1
         TIMETILLSEEK = 1
-        SEEKDISTANCE = 100
+        SEEKDISTANCE = 200
         SEEKINGGRAVITY = 0
-        POSTLOCKONSPEED = 3
+        POSTLOCKONSPEED = 20
+        POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-    #class SHOTGUN(enum.Enum):
-        #SPEED = 30
-        #GRAVITY = 0.05
-        #DAMAGE = 3
-        #RELOAD = 2
-        #SIZE = 2
+        textureLocation = "pics/sprites/Granade_Shell.png"
 
-        #SEEKING = False
-        #NAME = "Shotgun Shell"
-        #FLYTIME = float("inf")
-        #TIMETILLSEEK = 0
-        #SEEKDISTANCE = 0
-        #POSTLOCKONSPEED = 0
+        EXPLOSIONSIZE = 0.7
+        EXPLOSIONTIME = 1
 
-        #NUMBEROFSHELLS = 5
-        #SPREAD = 10
+    class SHOTGUN(enum.Enum):
+        SPEED = 30
+        GRAVITY = 0.05
+        DAMAGE = 3
+        RELOAD = 2
+        SIZE = 2
+
+        SEEKING = False
+        NAME = "Shotgun Shell"
+        FLYTIME = float("inf")
+        TIMETILLSEEK = 0
+        SEEKDISTANCE = 0
+        POSTLOCKONSPEED = 0
+
+        NUMBEROFSHELLS = 5
+        SPREAD = 10
+
+        textureLocation = "pics/sprites/Granade_Shell.png"
+
+        EXPLOSIONSIZE = 0.7
+        EXPLOSIONTIME = 1
+
+    class FLAK(enum.Enum):
+        SPEED = 30
+        GRAVITY = 0
+        DAMAGE = 0
+        RELOAD = 2
+        SIZE = 2
+
+        SEEKING = False
+        NAME = "Flak"
+        FLYTIME = 0.3
+        TIMETILLSEEK = 0
+        SEEKDISTANCE = 0
+        POSTLOCKONSPEED = 0
+
+        NUMBEROFSHELLS = 10
+        SPREAD = 45
+
+        textureLocation = "pics/sprites/Light_Shell.png"
+
+        EXPLOSIONSIZE = 0.2
+        EXPLOSIONTIME = 0.2
 
 
     def next(self):
@@ -188,12 +271,33 @@ expl = []
 for myfile in only_files:
     if "Explosion" in myfile:
         expl.append(pg.image.load("sprites/" + myfile))
+fireShots = []
+for myfile in only_files:
+    if "Fire_Shots_Shot_A" in myfile:
+        fireShots.append(pg.image.load("sprites/" + myfile))
 
-class Explosion(CollisionObject):
+dust = []
+only_files2 = [files for files in listdir("pics/sprites") if isfile(join("pics/sprites", files))]
+for myfile in only_files2:
+    if "Smoke" in myfile:
+        dust.append(pg.image.load("pics/sprites/" + myfile))
+
+class Animation(CollisionObject):
+    def __init__(self, polygon, gameinstance, sprites, duration, size, callerArray):
+        super().__init__(polygon,gameinstance)
+        self.duration = duration * 60
+        newSprites = []
+        for sprite in sprites:
+            newSprites.append(pg.transform.scale(sprite,(int(sprite.get_width() * size), int(sprite.get_width() * size))))
+
+        self.sprites = newSprites
+        self.callerArray = callerArray
     def draw(self, display):
-        if len(expl) == int(self.internalFrame / len(expl)):
+        if math.floor(self.internalFrame/self.duration*len(self.sprites)) >= len(self.sprites):
+            if self in self.callerArray:
+                self.callerArray.remove(self)
             return True
-        display.blit(expl[int(self.internalFrame / len(expl))], (self.getCoords()[0] - 140, self.getCoords()[1] - 140))
+        display.blit(self.sprites[math.floor(self.internalFrame/self.duration*len(self.sprites))], (self.getCoords()[0] - self.sprites[0].get_width()/2, self.getCoords()[1] - self.sprites[0].get_height()/2))
         self.advanceFrameCounter()
         return False
 
@@ -244,7 +348,11 @@ class Shell(MovablePhysicsObject):
         self.gravity = self.shellType.value.GRAVITY.value
         self.seeking = False
         self.tank = tank
-        self.explosion = 0
+        self.explosions = []
+        self.gameInstance.collisionObjects.append(self)
+        self.basetexture = pg.image.load(self.shellType.value.textureLocation.value)
+        self.texture = self.basetexture
+        self.rotation = math.degrees(math.asin(self._normalizedDirectionalVector[0]))
 
     def move(self):
         if self.shellState == shellStates.FLYING:
@@ -255,22 +363,27 @@ class Shell(MovablePhysicsObject):
                 distanceToSeekedPlayer = 99999999
                 vectorToSeekedPlayer = 0
                 for player in self.gameInstance.players:
-                    vectorToPlayer = (self.getCoords()[0] - player.getCoords()[0], self.getCoords()[1] - player.getCoords()[1])
-                    distanceToPlayer = math.sqrt(vectorToPlayer[0]*vectorToPlayer[0]+vectorToPlayer[1]*vectorToPlayer[1])
-                    if distanceToPlayer < distanceToSeekedPlayer and distanceToPlayer < self.shellType.value.SEEKDISTANCE.value and player != self.tank:
-                        seekedPlayer = player
-                        vectorToSeekedPlayer = vectorToPlayer
+                    if player != self.tank:
+                        vectorToPlayer = (self.getCoords()[0] - player.getCoords()[0], self.getCoords()[1] - player.getCoords()[1])
+                        distanceToPlayer = math.sqrt(vectorToPlayer[0]*vectorToPlayer[0]+vectorToPlayer[1]*vectorToPlayer[1])
+                        if distanceToPlayer < distanceToSeekedPlayer and distanceToPlayer < self.shellType.value.SEEKDISTANCE.value:
+                            seekedPlayer = player
+                            vectorToSeekedPlayer = vectorToPlayer
                 if seekedPlayer != 0:
                     self.color = Color(222, 23, 56)
                     self.speed = self.shellType.value.POSTLOCKONSPEED.value
                     vectorToSeekedPlayer = self.normalizeVector(vectorToSeekedPlayer)
-                    self.changeVectorBy(-vectorToSeekedPlayer[0]*self.shellType.value.SPEED.value*0.004,-vectorToSeekedPlayer[1]*self.shellType.value.SPEED.value*0.004)
+                    self.changeVectorBy(-vectorToSeekedPlayer[0]*self.shellType.value.POSTLOCKONSPEED.value*0.2,-vectorToSeekedPlayer[1]*self.shellType.value.POSTLOCKONSPEED.value*0.2)
+                    self.speed += self.shellType.value.POSTLOCKONACCELERATION.value
 
             self.physicsMove()
             self.changeVectorBy(0, self.gravity)
+            self.rotation = math.degrees(math.asin(self._normalizedDirectionalVector[0]))
+            if self._normalizedDirectionalVector[1] > 0:
+                self.texture = pg.transform.rotate(self.basetexture, self.rotation)
+            else:
+                self.texture = pg.transform.rotate(self.basetexture, -self.rotation)
             newCoords = self.getCoords()
-            if newCoords[0] > self.gameInstance.width or newCoords[0] < 0:
-                self.safedelete()
             self.collisionPolygon = Polygon([
                 (oldCoords[0],oldCoords[1]),
                 (oldCoords[0]+self.shellType.value.SIZE.value, oldCoords[1]+self.shellType.value.SIZE.value),
@@ -278,9 +391,11 @@ class Shell(MovablePhysicsObject):
                 (newCoords[0], newCoords[1])])
 
             for thing in self.gameInstance.collisionObjects:
-                if thing.polygon.intersects(self.collisionPolygon) and thing != self and thing != self.tank:
+                if thing.polygon.intersects(self.collisionPolygon) and thing != self and thing != self.tank and not thing in self.tank.shells:
                     thing.hit(self.shellType.value.DAMAGE.value)
-                    self.explode()
+                    intersection = self.collisionPolygon.intersection(thing.polygon)
+                    self.explode(intersection)
+
 
             if self.remainingFlyingTime > 0:
                 self.remainingFlyingTime -= 1
@@ -288,6 +403,8 @@ class Shell(MovablePhysicsObject):
 
             if self.speed <= 0:
                 self.changeVectorTo((0,0))
+                if not self.shellType.value.SEEKING.value:
+                    self.safedelete()
 
             if self.remainingTimeTillSeek > 0:
                 self.remainingTimeTillSeek -= 1
@@ -295,51 +412,66 @@ class Shell(MovablePhysicsObject):
             if self.remainingTimeTillSeek <= 0:
                 self.startSeeking()
 
-    def draw(self, display):
-        if self.shellState == shellStates.FLYING:
-            pg.gfxdraw.filled_polygon(display, self.collisionPolygon.exterior.coords, self.color)
-        if self.shellState == shellStates.EXPLODING:
-            if self.explosion.draw(display):
+            if newCoords[0] > self.gameInstance.width or newCoords[0] < 0 and self.shellState != shellStates.EXPLODING:
                 self.safedelete()
 
+    def draw(self, display):
+        if self.shellState == shellStates.FLYING:
+            #pg.gfxdraw.filled_polygon(display, self.collisionPolygon.exterior.coords, self.color)
+            pos = (self.getCoords()[0] - (self.texture.get_width() / 2),
+                   self.getCoords()[1] - (self.texture.get_height() / 2))
+            display.blit(self.texture, pos)
+        if self.shellState == shellStates.EXPLODING:
+            delete = False
+            for explosion in self.explosions:
+                delete = delete or explosion.draw(display)
+            if delete:
+                self.safedelete()
 
-    def explode(self):
-        self.explosion = Explosion(self.polygon, self.gameInstance)
-        self.shellState = shellStates. EXPLODING
+    def explode(self, poly):
+        self.explosions.append(Animation(poly, self.gameInstance, expl, self.shellType.value.EXPLOSIONTIME.value, self.shellType.value.EXPLOSIONSIZE.value, self.explosions))
+        self.shellState = shellStates.EXPLODING
 
     def safedelete(self):
         if self in self.tank.shells:
             self.tank.shells.remove(self)
+        if self in self.gameInstance.collisionObjects:
+            self.gameInstance.collisionObjects.remove(self)
 
     def startSeeking(self):
         if self.shellType.value.SEEKING.value:
             self.gravity = self.shellType.value.SEEKINGGRAVITY.value
+            self.seeking = True
 
 class Game(object):
     def __init__(self, width, heigth, display, font):
         self.width = width
-        self.heigth = heigth
+        self.height = heigth
         self.display = display
         self.clock = pg.time.Clock()
         self.fps = 60
         self.font = font
-        self.map = Map(Polygon(self.createMap(self.width, self.heigth)),self)
         self.players = []
-        self.players.append(Tank(self))
-        self.players.append(Tank(self))
+        self.players.append(Tank(self, 1))
+        self.players.append(Tank(self, 2))
         self.drawableObjects = []
         self.collisionObjects = []
+        self.map = 0
+
+
+    def startGame(self):
+        self.map = Map(Polygon(self.createMap(self.width, self.height)), self)
         self.collisionObjects.append(self.map)
         for player in self.players:
             player.move(self.map)
             self.collisionObjects.append(player)
         for thing in self.collisionObjects:
             self.drawableObjects.append(thing)
-
-
-    def startGame(self):
         while True:
-            self.players[0].move(self.map)
+            #self.players[0].move(self.map)
+            for player in self.players:
+                pass
+                player.move(self.map)
             for event in pg.event.get():
                 if event.type == QUIT:
                     pg.quit()
@@ -367,48 +499,65 @@ class Game(object):
         map.append((width, height))
         return map
 
-
 class Tank(MovablePhysicsObject):
-    def __init__(self, gameinstance):
-        color = pg.Color(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        super().__init__(Polygon([(32,32), (32,62), (102,62), (102,32)]),gameinstance,[0,0],0, color)
-        self.angle = 45
-        tmpCoords = self.getCoords()
-        self.firingVector = [math.cos(self.angle)*100, math.sin(self.angle)*100]
+    def __init__(self, gameinstance, playernumber):
+
+        if playernumber == 1:
+            self.config = playerControls.FIRST
+        else:
+            self.config = playerControls.SECOND
+
+        color = self.config.value.Color.value
+        super().__init__(Polygon([(2,38),(21,57),(87,58),(103,45),(103,15),(76,17),(76,0),(34,0),(35,16),(18,16)]),gameinstance,[0,0],0, color)
+        if playernumber == 1:
+            startpos = (self.gameInstance.width-50,0)
+        else:
+            startpos = (50,50)
+        self.moveTo(startpos)
+        self.angle = -90
+        self.firingVector = [math.cos(math.radians(self.angle))*75, math.sin(math.radians(self.angle))*75]
         self.shells = []
-        self.mapLayer = Polygon([(32,32), (32,62), (102,62), (102,32)])
         self.timeToLoad = 0
         self.currentlySelectedShell = shellTypes.NORMAL
         self.life = 100
         self.groundedCorner = 1
+        self.keydown = False
+        self.texture = pg.image.load(self.config.value.TextureLocation.value)
+        self.texture = pg.transform.scale(self.texture, (104, 59))
+        self.cannonTexture = pg.image.load(self.config.value.WeaponLocation.value)
+        self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
+        self.animations = []
 
     def move(self, map):
         key = pg.key.get_pressed()
-        if key[pg.K_LEFT]:
+        if key[self.config.value.LEFT.value]:
             self.changeVectorBy(-0.02, 0)
             self.speed = 3
             self.groundedCorner = 2
-        elif key[pg.K_RIGHT]:
+        elif key[self.config.value.RIGHT.value]:
             self.changeVectorBy(0.02, 0)
             self.speed = 3
             self.groundedCorner = 1
-        if key[pg.K_UP]:
-            self.angle += 0.025
-        if key[pg.K_DOWN]:
-            self.angle -= 0.025
-        for event in pg.event.get():
-            if event.type == pg.KEYUP and event.key == pg.K_PERIOD:
+        if key[self.config.value.UP.value]:
+            self.angle += 1
+        if key[self.config.value.DOWN.value]:
+            self.angle -= 1
+        if key[self.config.value.CYCLE.value]:
+            self.keydown = True
+        elif self.keydown:
+            self.keydown = False
+            if self.timeToLoad <= 0:
                 self.currentlySelectedShell = self.currentlySelectedShell.next()
-        if key[pg.K_SPACE]:
-            self.fireShell()
         if self.physicsMoveNewPolygon().exterior.coords[1][0] > 1 and self.physicsMoveNewPolygon().exterior.coords[2][0] < self.gameInstance.width -1:
             self.physicsMove()
         for shell in self.shells:
             shell.move()
-        self.rotateToGround(map, self.groundedCorner)
-        self.firingVector = [math.cos(self.angle)*100, math.sin(self.angle)*100]
+        self.firingVector = [math.cos(math.radians(self.angle))*75, math.sin(math.radians(self.angle))*75]
+        self.rotateToGround(map, self.groundedCorner,self.speed)
         self.changeVectorTo([0,0])
         self.speed = 0
+        if key[self.config.value.FIRE.value]:
+            self.fireShell()
         if self.timeToLoad > 0:
             self.timeToLoad -= 1
 
@@ -416,54 +565,95 @@ class Tank(MovablePhysicsObject):
         if self.timeToLoad <= 0:
             tmpCoords = self.getCoords()
             if self.currentlySelectedShell.value.NUMBEROFSHELLS.value > 1:
+                self.angle -= self.currentlySelectedShell.value.SPREAD.value/2
                 for i in range(0,self.currentlySelectedShell.value.NUMBEROFSHELLS.value):
-                    if i == 0:
-                        self.angle -= self.currentlySelectedShell.value.SPREAD.value/2
-                    self.angle += self.currentlySelectedShell.value.SPREAD.value*i/(self.currentlySelectedShell.value.NUMBEROFSHELLS.value-1)
-                    self.firingVector = [math.cos(self.angle) * 100, math.sin(self.angle) * 100]
+                    self.angle += self.currentlySelectedShell.value.SPREAD.value/(self.currentlySelectedShell.value.NUMBEROFSHELLS.value-1)
+                    self.firingVector = [math.cos(math.radians(self.angle))*100, math.sin(math.radians(self.angle))*100]
                     shellPolygon = Polygon([(tmpCoords[0], tmpCoords[1]+5), (tmpCoords[0]+5, tmpCoords[1]+5),(tmpCoords[0]+5, tmpCoords[1]),(tmpCoords[0], tmpCoords[1])])
                     self.shells.append(Shell(shellPolygon, self.gameInstance, self.firingVector, self.currentlySelectedShell, self))
+                self.angle -= self.currentlySelectedShell.value.SPREAD.value/2
             else:
 
                 shellPolygon = Polygon([(tmpCoords[0], tmpCoords[1] + 5), (tmpCoords[0] + 5, tmpCoords[1] + 5),
                                         (tmpCoords[0] + 5, tmpCoords[1]), (tmpCoords[0], tmpCoords[1])])
                 self.shells.append( Shell(shellPolygon, self.gameInstance, self.firingVector, self.currentlySelectedShell, self))
             self.timeToLoad = self.currentlySelectedShell.value.RELOAD.value * self.gameInstance.fps
-        pass
+            tempshot = []
+            print("smoke ")
+            for i in range(len(fireShots)):
+                print("Tha weed")
+                tempshot.append(pg.transform.rotate(fireShots[i], -self.angle-90))
+            pos = (self.getCoords()[0] + self.firingVector[0] - tempshot[0].get_width()/2,
+                 self.getCoords()[1] + self.firingVector[1] - tempshot[0].get_height()/2)
+            self.animations.append(Animation(Polygon([pos,pos,pos]), self.gameInstance, tempshot, 0.25, 0.7, self.animations))
 
-    def firingAnimation(self):
-        pass
 
     def hit(self, dmg):
         self.life = self.life - dmg
 
     def draw(self, display):
-        print(self.angle)
         tmpCoords = (int(self.getCoords()[0]), int(self.getCoords()[1]))
-        super().draw(display)
-        pg.draw.line(display, self.color, (tmpCoords[0], tmpCoords[1]+50), (tmpCoords[0]+self.life, tmpCoords[1]+50), 10) #Die Hp Anzeige zeichnen
-        pg.draw.line(display, self.color, (tmpCoords[0]-50, tmpCoords[1]), (tmpCoords[0]-50, tmpCoords[1]+self.timeToLoad), 10) #Die Hp Anzeige zeichnen
-        pg.draw.line(display, self.color, (tmpCoords[0], tmpCoords[1]), (tmpCoords[0]+self.firingVector[0], tmpCoords[1]+self.firingVector[1]), 1) #Die Hp Anzeige zeichnen
+        #super().draw(display)
+
+        if self.config == playerControls.FIRST:
+            pg.draw.line(display, self.color, (self.gameInstance.width - 250, self.gameInstance.height - 30),(self.gameInstance.width - 250 + self.life * 2, self.gameInstance.height - 30), 30)  # Die Hp Anzeige zeichnen
+        else:
+            pg.draw.line(display, self.color, (50, self.gameInstance.height - 30),(50 +self.life * 2, self.gameInstance.height - 30), 30)  # Die Hp Anzeige zeichnen
+
         for shell in self.shells:
             shell.draw(display)
-        textsurface = self.gameInstance.font.render(self.currentlySelectedShell.value.NAME.value, False, self.color)
-        display.blit(textsurface, self.getCoords())
 
-    def rotateToGround(self,map,corner):
+        for animation in self.animations:
+            animation.draw(display)
+
+        pos = (self.getCoords()[0] - (self.cannonTexture.get_width() / 2),
+               self.getCoords()[1] - (self.cannonTexture.get_height() / 2))
+
+        display.blit(self.cannonTexture,pos)
+        pos = (self.getCoords()[0] - (self.texture.get_width() / 2),
+               self.getCoords()[1] - (self.texture.get_height() / 2))
+        display.blit(self.texture,pos)
+
+        textsurface = self.gameInstance.font.render(self.currentlySelectedShell.value.NAME.value, False, self.color)
+        if self.config == playerControls.FIRST:
+            display.blit(textsurface, (self.gameInstance.width - 250, self.gameInstance.height - 90))
+            textsurface = self.gameInstance.font.render(str(self.timeToLoad/self.gameInstance.fps)[:4], False, self.color)
+            display.blit(textsurface, (self.gameInstance.width - 250, self.gameInstance.height - 120))
+        else:
+            display.blit(textsurface, (50, self.gameInstance.height - 90))
+            textsurface = self.gameInstance.font.render(str(self.timeToLoad/self.gameInstance.fps)[:4], False, self.color)
+            display.blit(textsurface, (50, self.gameInstance.height - 120))
+        self.advanceFrameCounter()
+
+
+    def rotateToGround(self,map,corner,moved):
         while not map.polygon.contains(Point(self.polygon.exterior.coords[corner])):
             self.moveBy(0, 1)
         while map.polygon.contains(Point(self.polygon.exterior.coords[corner])):
             self.moveBy(0, -2)
-        if corner == 1:
-            self.rotateTo(270, corner)
-        elif corner == 2:
-            self.rotateTo(90, corner)
+
+        if moved and not self.internalFrame % (self.gameInstance.fps/15):
+            tempdust = []
+            for i in range(len(dust)):
+                tempdust.append(pg.transform.rotate(dust[i], self.rotation))
+            self.animations.append(Animation(Polygon([self.polygon.exterior.coords[corner],self.polygon.exterior.coords[corner],self.polygon.exterior.coords[corner]]), self.gameInstance, tempdust,3/15, 1, self.animations))
+
+
         while not map.polygon.intersects(LineString([self.polygon.exterior.coords[1],self.polygon.exterior.coords[2]])):
             if corner == 1:
                 self.rotateBy(1, corner)
             elif corner == 2:
                 self.rotateBy(-1, corner)
-        if corner == 1:
-            self.rotateBy(-1, corner)
-        elif corner == 2:
-            self.rotateBy(1, corner)
+        while map.polygon.intersects(LineString([self.polygon.exterior.coords[1],self.polygon.exterior.coords[2]])):
+            if corner == 1:
+                self.rotateBy(-1, corner)
+            elif corner == 2:
+                self.rotateBy(1, corner)
+
+        self.texture = pg.image.load(self.config.value.TextureLocation.value)
+        self.texture = pg.transform.scale(self.texture, (104, 59))
+        self.texture = pg.transform.rotate(self.texture, -self.rotation)
+        self.cannonTexture = pg.image.load(self.config.value.WeaponLocation.value)
+        self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
+        self.cannonTexture = pg.transform.rotate(self.cannonTexture, -self.angle)
+        self.cannonTexture = pg.transform.rotate(self.cannonTexture, -180)
