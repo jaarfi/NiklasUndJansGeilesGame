@@ -68,7 +68,6 @@ def set_theme(index):
 theme = get_theme()
 all_theme = get_all_theme()
 
-
 # _________________________________________________________________
 only_files = [files for files in listdir("sprites") if isfile(join("sprites", files))]
 tutorialSheets = []
@@ -83,7 +82,7 @@ bigx = []
 check = []
 play = []
 sett = []
-# ToDO responsive skale
+
 for myfile in only_p:
     if "BIGX" in myfile:
         bigx.append(pygame.image.load("pics/btn/" + myfile))
@@ -172,14 +171,14 @@ def draw_theme(btn, mouse_pos, cc):
     p_rect = pygame.Rect(btn.rect.left + btn.shd, btn.rect.top + btn.shd, btn.rect.width, btn.rect.height)
 
     if btn.rect.right > mouse_pos[0] > btn.rect.left and btn.rect.top < mouse_pos[1] < btn.rect.bottom:
-        pygame.draw.rect(screen, cc[2], (p_rect.left, p_rect.top, p_rect.width, p_rect.height/2))
-        pygame.draw.rect(screen, cc[0], (p_rect.left, p_rect.centery, p_rect.width, p_rect.height/2))
+        pygame.draw.rect(screen, cc[2], (p_rect.left, p_rect.top, p_rect.width, p_rect.height / 2))
+        pygame.draw.rect(screen, cc[0], (p_rect.left, p_rect.centery, p_rect.width, p_rect.height / 2))
         if pygame.mouse.get_pressed() == (True, False, False):
             return True
     else:
         pygame.draw.rect(screen, cc[1], p_rect)
-        pygame.draw.rect(screen, cc[2], (btn.rect.left, btn.rect.top, btn.rect.width, btn.rect.height/2))
-        pygame.draw.rect(screen, cc[0], (btn.rect.left, btn.rect.centery, btn.rect.width, btn.rect.height/2))
+        pygame.draw.rect(screen, cc[2], (btn.rect.left, btn.rect.top, btn.rect.width, btn.rect.height / 2))
+        pygame.draw.rect(screen, cc[0], (btn.rect.left, btn.rect.centery, btn.rect.width, btn.rect.height / 2))
     return False
 
 
@@ -324,9 +323,9 @@ def setting(m=0):
         bx = [pygame.Rect(theme_rect.left, theme_rect.centery, 0, 0)]
         btn = []
 
-        for i in range(1, l+1):
-            bx.append(pygame.Rect(bx[i-1].right, bx[i-1].top, theme_rect.width/l, btn_cu[1]))
-            btn.append(CubicButton((bx[i].centerx-btn_cu[0]/2, bx[i].centery-btn_cu[0]/2), None))
+        for i in range(1, l + 1):
+            bx.append(pygame.Rect(bx[i - 1].right, bx[i - 1].top, theme_rect.width / l, btn_cu[1]))
+            btn.append(CubicButton((bx[i].centerx - btn_cu[0] / 2, bx[i].centery - btn_cu[0] / 2), None))
 
     tytel = pygame.Rect(settings.left + settings.width / 4, settings.top + settings.height * 0.125,
                         settings.width / 2, settings.height / 9)
@@ -360,7 +359,6 @@ def setting(m=0):
             for a in btn:
                 theme_btn.append(draw_theme(a, mouse_pos, all_theme[i]))
                 i += 1
-
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -434,11 +432,18 @@ def menu():
 
     while True:
         screen.fill(theme[2])
+        pygame.gfxdraw.filled_polygon(screen, [(displaywidth, displayheight),
+                                               (0, displayheight),
+                                               (0, displayheight * 0.75),
+                                               (displaywidth * 0.2, displayheight * 0.7),
+                                               (displaywidth * 0.5, displayheight * 0.73),
+                                               (displaywidth * 0.8, displayheight * 0.695),
+                                               (displaywidth, displayheight * 0.5)], theme[0])
         mouse_pos = pygame.mouse.get_pos()
 
         # sta_act = button_action3(start, mouse_pos, theme, btn_big[2], start_txt)
         sta_act = start.draw_button(mouse_pos, theme)
-        tut_act = tutor.draw_button(mouse_pos, theme)
+        tut_act = tutor.draw_button(mouse_pos, theme[::-1])
         set_act = settings.draw_button(mouse_pos, theme)
 
         draw_text(45, tytel, "NiklasUndJansGeilesGame", theme[0])
