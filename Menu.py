@@ -71,18 +71,11 @@ all_theme = get_all_theme()
 
 # _________________________________________________________________
 only_files = [files for files in listdir("sprites") if isfile(join("sprites", files))]
-exhaust = []
-shot = []
 tutorialSheets = []
 
 for myfile in only_files:
-    if "Exhaust_02" in myfile:
-        img = pygame.image.load("sprites/" + myfile)
-        exhaust.append(pygame.transform.scale(img, (200, 200)))
-    elif "Shot_A" in myfile:
-        shot.append(pygame.image.load("sprites/" + myfile))
     # TODO: elif für tutorial
-    elif "Explosion" in myfile:
+    if "Explosion" in myfile:
         tutorialSheets.append(pygame.image.load("sprites/" + myfile))
 
 only_p = [files for files in listdir("pics/btn") if isfile(join("pics/btn", files))]
@@ -101,9 +94,6 @@ for myfile in only_p:
         play.append(pygame.image.load("pics/btn/" + myfile))
     elif "SETT" in myfile:
         sett.append(pygame.image.load("pics/btn/" + myfile))
-
-
-# sett = pygame.image.load("pics/btn/SYMB_SETTINGS_s.png")
 
 
 class Button:
