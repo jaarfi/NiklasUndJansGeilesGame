@@ -1,8 +1,7 @@
-from baseClasses import *
+from classes.baseClasses import *
 
 import pygame as pg
 import pygame.gfxdraw
-from pygame.locals import *
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 
