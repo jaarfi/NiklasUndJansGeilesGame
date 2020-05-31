@@ -27,20 +27,21 @@ btn_mid = displaywidth / 5, displayheight / 15, 2
 btn_small = displaywidth / 8, displayheight / 15, 2
 btn_cu = displayheight / 15, displayheight / 15, 2
 
-shadow = displayheight * 0.0075
-
-
-# screen = pygame.display.set_mode((displaywidth, displayheight), 0, 32)
-
 clock = pygame.time.Clock()
 
 back_sound = pygame.mixer.music.load("sound/music.wav.mid")
-music_set = False
+music_set = True
 if music_set:
     pygame.mixer.music.play(-1)
 
+sound_set = True
+
 
 def get_all_theme():
+    """
+    :desc: ließt die Farben aller Themes aus "config.json".
+    :return: 2-dimensionales Array mit Farb-Tupeln
+    """
     with open('config.json', 'r') as c:
         config = json.load(c)
     t = []
@@ -52,6 +53,9 @@ def get_all_theme():
 
 
 def get_theme():
+    """
+    :return: aktuelle verwendetes Theme
+    """
     with open('config.json', 'r') as c:
         config = json.load(c)
     t = []
@@ -61,6 +65,11 @@ def get_theme():
 
 
 def set_theme(index):
+    """
+    :desc: setzt ein neues Theme das verwendet werden soll.
+    :param index: Nummer des gewählten Themes
+    :return:
+    """
     global theme
     with open('config.json', 'r+') as c:
         con = json.load(c)
@@ -75,7 +84,9 @@ def set_theme(index):
 theme = get_theme()
 all_theme = get_all_theme()
 
-# _________________________________________________________________
+"""
+laden aller benötigten Icons und Bilder 
+"""
 only_files = [files for files in listdir("pics/tutorial") if isfile(join("pics/tutorial", files))]
 tutorialSheets = []
 
@@ -104,6 +115,14 @@ for myfile in only_p:
 
 class Button:
     def __init__(self, pos, txt, width, height, bri):
+        """
+        :param pos: (x, y)-Position
+        :param txt: Text der in dem Button angezeigt werden soll
+        :param width: Breite
+        :param height: Höhe
+        :param bri: Dicke des Rahmens
+        :shd: Schatten unter dem Button
+        """
         self.pos = pos
         self.txt = txt
         self.bri = bri
@@ -113,16 +132,24 @@ class Button:
         self.shd = displayheight * 0.0075
 
     def draw_button(self, mouse_pos, cc):
-        pres_rect = pygame.Rect(self.rect.left + self.shd, self.rect.top + self.shd, self.rect.width, self.rect.height)
+        """
+        :desc: Zeichnet den Button, seinen Schatten und dessen Text. Steht die Maus über dem Button,
+         wird dieser verschoben gezeichent.
+        :param mouse_pos: Position der Maus
+        :param cc: Farben für Rahmen, Schatten und Innen
+        :return: -True: wenn der Button gehovert und die linke Maustaste gedrückt wird(Button wird angeklickt)
+                 -False: sonst
+        """
+        press_rect = pygame.Rect(self.rect.left + self.shd, self.rect.top + self.shd, self.rect.width, self.rect.height)
 
         if self.rect.right > mouse_pos[0] > self.rect.left and self.rect.top < mouse_pos[1] < self.rect.bottom:
-            pygame.draw.rect(screen, cc[2], pres_rect)
-            pygame.draw.rect(screen, cc[0], pres_rect, self.bri)
-            draw_text(self.txt[0], pres_rect, self.txt[1], cc[0])
+            pygame.draw.rect(screen, cc[2], press_rect)
+            pygame.draw.rect(screen, cc[0], press_rect, self.bri)
+            draw_text(self.txt[0], press_rect, self.txt[1], cc[0])
             if pygame.mouse.get_pressed() == (True, False, False):
                 return True
         else:
-            pygame.draw.rect(screen, cc[1], pres_rect)
+            pygame.draw.rect(screen, cc[1], press_rect)
             pygame.draw.rect(screen, cc[2], self.rect)
             pygame.draw.rect(screen, cc[0], self.rect, self.bri)
             draw_text(self.txt[0], self.rect, self.txt[1], cc[0])
@@ -130,22 +157,53 @@ class Button:
 
 
 class CubicButton(Button):
+    """
+    :desc: erzeugt einen quadratischen Button mit evtl. Icons.
+    """
     def __init__(self, pos, pic_, txt=(0, ""), widhei=displayheight / 15, bri=2):
+        """
+        :param pos: (x, y)-Position
+        :param pic_: Icon
+        :param txt: Text wird hier nicht benutzt
+        :param widhei: Breite und Höhe
+        :param bri: Dicke des Rahmens
+        :pic_w: Breite für Icons
+        :pic: skaliertes Icon
+        """
         super().__init__(pos, txt, widhei, widhei, bri)
         self.pic_w = int(self.width / 1.2)
         self.pic = self.scale_pic(pic_)
 
     def scale_pic(self, pic_):
+        """
+        :desc: wenn Button ein Icon haben soll wird es auf die richtige Größe skaliert.
+        :param pic_: Icon
+        :return: skaliertes Icon
+        """
         if pic_:
             pic = pygame.transform.scale(pic_, (self.pic_w, self.pic_w))
             return pic
 
     def rect_pic(self, rect):
+        """
+        :desc: Um das Icon an der richtigen Stelle anzuzeigen, wird ein Quadrat erzeugt welches in der Mitte
+         des Button liegt.
+        :param rect: Quadrat des Button
+        :return: Quadrat für Icon
+        """
         v = int((rect.width - self.pic_w) / 2)
         rect = pygame.Rect(rect.left + v, rect.top + v, self.pic_w, self.pic_w)
         return rect
 
     def draw_button(self, mouse_pos, cc):
+        """
+        :desc: Zeichnet den Button und seinen Schatten. Steht die Maus über dem Button, wird dieser verschoben gezeichent
+        Wird dem Button noch ein Icon übergeben wird dieses mit gezeichnet.
+        :param mouse_pos: Position der Maus
+        :param cc: Farben für Rahmen, Schatten und Innen
+        :return: -True: wenn der Button gehovert und die linke Maustaste gedrückt wird(Button wird angeklickt)
+                 -False: sonst
+        """
         pres_rect = pygame.Rect(self.rect.left + self.shd, self.rect.top + self.shd, self.rect.width, self.rect.height)
 
         if self.rect.right > mouse_pos[0] > self.rect.left and self.rect.top < mouse_pos[1] < self.rect.bottom:
@@ -165,16 +223,26 @@ class CubicButton(Button):
 
 
 class MedButton(Button):
+    """Erzeugt einen mittel großen Button"""
     def __init__(self, pos, txt=(20, ""), width=displaywidth / 5, height=displayheight / 15, bri=2):
         super().__init__(pos, txt, width, height, bri)
 
 
 class BigButton(Button):
+    """Erzeugt einen großen Button"""
     def __init__(self, pos, txt=(20, ""), width=displaywidth / 4, height=displayheight / 13, bri=3):
         super().__init__(pos, txt, width, height, bri)
 
 
 def draw_theme(btn, mouse_pos, cc):
+    """
+    :desc: Zeichnet für die Auswahl der Themes Button in der jeweiligen Farbe.
+    :param btn: Button
+    :param mouse_pos: Mausposition
+    :param cc: Farben des Themes
+    :return: -True: wenn der Button gehovert und die linke Maustaste gedrückt wird(Button wird angeklickt)
+             -False: sonst
+    """
     p_rect = pygame.Rect(btn.rect.left + btn.shd, btn.rect.top + btn.shd, btn.rect.width, btn.rect.height)
 
     if btn.rect.right > mouse_pos[0] > btn.rect.left and btn.rect.top < mouse_pos[1] < btn.rect.bottom:
@@ -190,6 +258,17 @@ def draw_theme(btn, mouse_pos, cc):
 
 
 def pause_menu():
+    """
+    :desc: Zeichen eines Pausen-Menus wenn das Spiel pausiert wird. Besitzt fünf Buttons:
+        - "esc", "quit": Zum Hauptmenu zurückkehren
+        - "restart": <c>
+        - "resume": Zurück zum pausierten Spiel
+        - "settings": Zu den Einstellungen
+    Die Buttons werden erzeugt und dargestellt. In der While-Schleife werden permanent die Mause bzw. Tastatureingaben
+    der Benutzer abgefragt. Wird ein Button gedrückt und wieder losgelassen, wird dessen Aktion ausgeführt. Die Aktionen
+    können ebenfalls durch Tasten ausgelöst werden.
+    :return: None
+    """
     pygame.gfxdraw.box(screen, (0, 0, displaywidth, displayheight), theme[1])
     pygame.display.flip()
 
@@ -225,6 +304,8 @@ def pause_menu():
                     menu()
                 elif event.key == pygame.K_r:
                     game_start()
+                elif event.key == pygame.K_s:
+                    setting()
                 elif event.key == pygame.K_SPACE:
                     return
 
@@ -243,7 +324,17 @@ def pause_menu():
 
 
 def tutorial():
-    # TODO Bilder laden
+    """
+    :desc: Zeichen eines Tutorials. Besitzt drei Buttons:
+        - "next": Springen zur nächsten Tutorialseite
+        - "previous": Zur vorherigen springen
+        - "esc": Tutorial beenden
+    Die Buttons werden erzeugt und dargestellt. In der While-Schleife werden permanent die Mause bzw. Tastatureingaben
+    der Benutzer abgefragt. Wird ein Button gedrückt und wieder losgelassen, wird dessen Aktion ausgeführt. Die Aktionen
+    können ebenfalls durch Tasten ausgelöst werden. Die Tutorial-Informationen stehen auf Bilder, welche dargestellt
+    werden.
+    :return: None
+    """
     sheet = 0
     tytel = pygame.Rect(displaywidth / 2 - btn_big[0] / 2, 20, btn_big[0], btn_big[1])
 
@@ -304,15 +395,37 @@ def tutorial():
 
 
 def draw_panel(frame):
+    """
+    :desc: Zeichnet für das übergebene Menu, Hintergrund, Rahmen und Schatten
+    :param frame: Rechteck des darzustellenden Menu
+    :return: None
+    """
     b1 = displayheight / 160
     b2 = displayheight / 114
-    pygame.draw.rect(screen, theme[1], (frame.left + shadow, frame.top + shadow, frame.width, frame.height))
+    pygame.draw.rect(screen, theme[1], (frame.left + displayheight * 0.0075, frame.top + displayheight * 0.0075,
+                                        frame.width, frame.height))
     pygame.draw.rect(screen, theme[2], frame)
     pygame.draw.rect(screen, theme[1], (frame.left + b1, frame.top + b1, frame.width - b1 * 2, frame.height - b1 * 2))
     pygame.draw.rect(screen, theme[0], (frame.left + b2, frame.top + b2, frame.width - b2 * 2, frame.height - b2 * 2))
 
 
 def setting(m=0):
+    """
+    :desc: Zeichnet die Einstellungen. Besitzt einen Button:
+        - "esc": Schließen der Einstellungen
+    Einstellungen:
+        - Music: Ein/Aus der Hintergrundmusik
+        - Sound: Ein/Aus der Spieler Sounds
+        (nur aus Hauptmenu abrufbar):
+        - Theme: Auswahl der zur Verfügung stehenden Themes
+
+    Der Button, bzw. die Buttons für die Einstellungen werden erzeugt und dargestellt. In der While-Schleife werden
+    permanent die Mause bzw. Tastatureingaben der Benutzer abgefragt. Wird eine Einstellung angeklickt wird diese
+    übernommen. Bei Musik und Sound werden globale Variablen benutzt. Eine Änderung des Themes wird in "config.json"
+    gespeichert.
+    :param m: Aufrufer Kennung (m=1, wenn aus Hauptmenu aufgerufen)
+    :return: None
+    """
     global music_set, sound_set
     fact = 0
 
@@ -400,6 +513,7 @@ def setting(m=0):
                     return
 
         if music_set:
+            # des wird so dargestellt weils gut aussieht
             screen.blit(check[0], music_sym.rect_pic(music_sym.rect))
         if sound_set:
             screen.blit(check[0], sound_sym.rect_pic(sound_sym.rect))
@@ -414,6 +528,14 @@ def text_objects(font=(config["settings"]["font"], 12), text="", color=theme[0])
 
 
 def draw_text(px, rect, text, color=theme[0]):
+    """
+    :desc: Bildet ein Rechteck, in welchem der Text angezeigt wird
+    :param px: Schriftgröße
+    :param rect: Rechteck, welches die Position des Textes angibt
+    :param text: Text
+    :param color: Textfarbe
+    :return: None
+    """
     my_text_font = pygame.font.Font(config["settings"]["font"], px)
     text_surf, text_rect = text_objects(my_text_font, text, color)
     text_rect.center = rect.center
@@ -421,31 +543,41 @@ def draw_text(px, rect, text, color=theme[0]):
 
 
 def game_start():
+    """
+    :desc: erzeugt eine neue Runde des Spiels
+    :return: None
+    """
     game = Game(displaywidth, displayheight, screen, pygame.font.SysFont(config["settings"]["font"], 30), theme)
     game.startGame()
 
 
-# ________________MENU________________
-sound_set = True
-
-
 def victory(player):
-    print(player)
+    """
+    :desc: Zeichnet ein Endscreen. Besitzt zwei Buttons:
+        - "quit": Zum Hauptmenu zurückkehren
+        - "revenge": Startet eine neue Runde
+    Die Buttons werden erzeugt und dargestellt. In der While-Schleife werden permanent die Mause bzw. Tastatureingaben
+    der Benutzer abgefragt. Wird ein Button gedrückt und wieder losgelassen, wird dessen Aktion ausgeführt. Die Aktionen
+    können ebenfalls durch Tasten ausgelöst werden. In dem Fenster wird zudem noch der Spieler spieler der gewonnen hat
+    angezeigt.
+    :param player: Nummer des Siegers
+    :return: None
+    """
 
     pygame.gfxdraw.box(screen, (0, 0, displaywidth, displayheight), theme[1])
     pygame.display.flip()
 
-    pause = pygame.Rect(displaywidth / 5, displayheight / 5, displaywidth * 0.6, displayheight * 0.6)
-    tytel = pygame.Rect(pause.left + pause.width / 4, pause.top + pause.height / 8, pause.width / 2,
-                        pause.height / 9)
+    vic = pygame.Rect(displaywidth / 5, displayheight / 5, displaywidth * 0.6, displayheight * 0.6)
+    tytel = pygame.Rect(vic.left + vic.width / 4, vic.top + vic.height / 8, vic.width / 2,
+                        vic.height / 9)
 
-    ex = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 3.5), (20, "quit"))
-    re = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 2), (20, "revenge"))
+    ex = MedButton((vic.left + vic.width / 2 - btn_mid[0] / 2, vic.bottom - btn_mid[1] * 3.5), (20, "quit"))
+    re = MedButton((vic.left + vic.width / 2 - btn_mid[0] / 2, vic.bottom - btn_mid[1] * 2), (20, "revenge"))
 
     winner = "Player" + str(player) + " Victory"
 
     while True:
-        draw_panel(pause)
+        draw_panel(vic)
 
         mouse_pos = pygame.mouse.get_pos()
 
@@ -476,6 +608,16 @@ def victory(player):
 
 
 def menu():
+    """
+     :desc: Zeichnet das Hauptmenu. Besitzt drei Buttons:
+        - "start": Startet das Spiel
+        - "turorial": Öffnet das Tutrial
+        - "Settings": Öffnet die Einstellungen
+    Die Buttons werden erzeugt und dargestellt. In der While-Schleife werden permanent die Mause bzw. Tastatureingaben
+    der Benutzer abgefragt. Wird ein Button gedrückt und wieder losgelassen, wird dessen Aktion ausgeführt. Die Aktionen
+    können ebenfalls durch Tasten ausgelöst werden.
+    :return: None
+    """
     tytel = pygame.Rect(displaywidth / 2 - btn_big[0] / 2, displayheight / 2 - btn_big[1] / 2, btn_big[0], btn_big[1])
 
     start = BigButton((displaywidth / 2 - btn_big[0] / 2, displayheight / 2 + btn_big[1] * 1.5), (20, "start"))
