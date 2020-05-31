@@ -69,13 +69,13 @@ theme = get_theme()
 all_theme = get_all_theme()
 
 # _________________________________________________________________
-only_files = [files for files in listdir("sprites") if isfile(join("sprites", files))]
+only_files = [files for files in listdir("pics/tutorial") if isfile(join("pics/tutorial", files))]
 tutorialSheets = []
 
 for myfile in only_files:
-    # TODO: elif für tutorial
-    if "Explosion" in myfile:
-        tutorialSheets.append(pygame.image.load("sprites/" + myfile))
+    if "tutorial" in myfile:
+        img = pygame.image.load("pics/tutorial/" + myfile)
+        tutorialSheets.append(pygame.transform.scale(img, (displayheight, displayheight)))
 
 only_p = [files for files in listdir("pics/btn") if isfile(join("pics/btn", files))]
 bigx = []
@@ -235,7 +235,7 @@ def pause_menu():
         clock.tick(60)
 
 
-def play_tutorial():
+def tutorial():
     # TODO Bilder laden
     sheet = 0
     tytel = pygame.Rect(displaywidth / 2 - btn_big[0] / 2, 20, btn_big[0], btn_big[1])
@@ -286,8 +286,8 @@ def play_tutorial():
                 elif event.key == pygame.K_ESCAPE:
                     return
 
-        s_sheet = pygame.transform.scale(tutorialSheets[sheet], (displaywidth, displayheight))
-        screen.blit(s_sheet, (0, 0))
+        screen.blit(tutorialSheets[sheet], (displaywidth/2-tutorialSheets[sheet].get_width()/2,
+                                            displayheight/2-tutorialSheets[sheet].get_height()/2))
 
         # tytel text
         draw_text(32, tytel, "Tutorial", theme[0])
@@ -412,8 +412,7 @@ def draw_text(px, rect, text, color=theme[0]):
 
 
 def game_start():
-    # todo theme übergeben
-    game = Game(displaywidth, displayheight, screen, pygame.font.SysFont(config["settings"]["font"], 30))
+    game = Game(displaywidth, displayheight, screen, pygame.font.SysFont(config["settings"]["font"], 30), theme)
     game.startGame()
 
 
@@ -423,30 +422,28 @@ sound_set = True
 
 
 def menu():
-    # TODO Bilder laden
     tytel = pygame.Rect(displaywidth / 2 - btn_big[0] / 2, displayheight / 2 - btn_big[1] / 2, btn_big[0], btn_big[1])
 
     start = BigButton((displaywidth / 2 - btn_big[0] / 2, displayheight / 2 + btn_big[1] * 1.5), (20, "start"))
     tutor = MedButton((displaywidth / 2 - btn_mid[0] / 2, displayheight / 2 + btn_big[1] * 3), (20, "tutorial"))
-    settings = CubicButton((displaywidth - btn_cu[0] * 1.5, btn_cu[0] / 2), sett[0])
+    settings = CubicButton((displaywidth - btn_cu[0] * 1.5, btn_cu[0] / 2), sett[1])
 
     while True:
-        screen.fill(theme[2])
+        screen.fill(theme[0])
         pygame.gfxdraw.filled_polygon(screen, [(displaywidth, displayheight),
                                                (0, displayheight),
                                                (0, displayheight * 0.75),
                                                (displaywidth * 0.2, displayheight * 0.7),
                                                (displaywidth * 0.5, displayheight * 0.73),
                                                (displaywidth * 0.8, displayheight * 0.695),
-                                               (displaywidth, displayheight * 0.5)], theme[0])
+                                               (displaywidth, displayheight * 0.5)], theme[2])
         mouse_pos = pygame.mouse.get_pos()
 
-        # sta_act = button_action3(start, mouse_pos, theme, btn_big[2], start_txt)
-        sta_act = start.draw_button(mouse_pos, theme)
-        tut_act = tutor.draw_button(mouse_pos, theme[::-1])
-        set_act = settings.draw_button(mouse_pos, theme)
+        sta_act = start.draw_button(mouse_pos, theme[::-1])
+        tut_act = tutor.draw_button(mouse_pos, theme)
+        set_act = settings.draw_button(mouse_pos, theme[::-1])
 
-        draw_text(45, tytel, "NiklasUndJansGeilesGame", theme[0])
+        draw_text(45, tytel, "NiklasUndJansGeilesGame", theme[2])
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -459,7 +456,7 @@ def menu():
                 elif event.key == pygame.K_s:
                     setting(1)
                 elif event.key == pygame.K_t:
-                    play_tutorial()
+                    tutorial()
 
             if event.type == pygame.MOUSEBUTTONUP:
                 if sta_act:
@@ -467,7 +464,7 @@ def menu():
                 elif set_act:
                     setting(1)
                 elif tut_act:
-                    play_tutorial()
+                    tutorial()
 
         pygame.display.flip()
         clock.tick(60)
