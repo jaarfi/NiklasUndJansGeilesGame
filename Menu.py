@@ -35,7 +35,7 @@ shadow = displayheight * 0.0075
 clock = pygame.time.Clock()
 
 back_sound = pygame.mixer.music.load("sound/music.wav.mid")
-music_set = True
+music_set = False
 if music_set:
     pygame.mixer.music.play(-1)
 
@@ -430,7 +430,49 @@ sound_set = True
 
 
 def victory(player):
-    return
+    print(player)
+
+    pygame.gfxdraw.box(screen, (0, 0, displaywidth, displayheight), theme[1])
+    pygame.display.flip()
+
+    pause = pygame.Rect(displaywidth / 5, displayheight / 5, displaywidth * 0.6, displayheight * 0.6)
+    tytel = pygame.Rect(pause.left + pause.width / 4, pause.top + pause.height / 8, pause.width / 2,
+                        pause.height / 9)
+
+    ex = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 3.5), (20, "quit"))
+    re = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 2), (20, "revenge"))
+
+    winner = "Player" + str(player) + " Victory"
+
+    while True:
+        draw_panel(pause)
+
+        mouse_pos = pygame.mouse.get_pos()
+
+        ex_btn = ex.draw_button(mouse_pos, theme[::-1])
+        re_btn = re.draw_button(mouse_pos, theme[::-1])
+
+        draw_text(32, tytel, winner, theme[::-1][0])
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    menu()
+                elif event.key == pygame.K_r:
+                    game_start()
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                if ex_btn:
+                    menu()
+                elif re_btn:
+                    game_start()
+
+        pygame.display.flip()
+        clock.tick(60)
 
 
 def menu():
@@ -474,7 +516,8 @@ def menu():
                 if sta_act:
                     game_start()
                 elif set_act:
-                    setting(1)
+                    # setting(1)
+                    victory(1)
                 elif tut_act:
                     tutorial()
 
