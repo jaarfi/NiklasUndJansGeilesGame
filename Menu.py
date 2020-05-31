@@ -516,8 +516,7 @@ def menu():
                 if sta_act:
                     game_start()
                 elif set_act:
-                    # setting(1)
-                    victory(1)
+                    setting(1)
                 elif tut_act:
                     tutorial()
 
