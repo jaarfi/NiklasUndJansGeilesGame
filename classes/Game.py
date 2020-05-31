@@ -1,7 +1,7 @@
 from classes.Shell import *
 
 class Game(object):
-    def __init__(self, width, heigth, display, font):
+    def __init__(self, width, heigth, display, font, colorScheme):
         self.width = width
         self.height = heigth
         self.display = display
@@ -14,6 +14,7 @@ class Game(object):
         self.drawableObjects = []
         self.collisionObjects = []
         self.map = 0
+        self.colorScheme = colorScheme
 
 
     def startGame(self):
@@ -36,7 +37,7 @@ class Game(object):
                 if event.type == KEYUP:
                     if event.key == K_ESCAPE:
                         Menu.pause_menu()
-            self.display.fill((0, 0, 0))
+            self.display.fill(self.colorScheme[0])
 
             for toDraw in self.drawableObjects:
                 toDraw.draw(self.display)
@@ -59,6 +60,6 @@ class Game(object):
 
 class Map(CollisionObject):
     def __init__(self, polygon, gameinstance):
-        color = pg.Color(35,133,85)
+        color = gameinstance.colorScheme[2]
         super().__init__(polygon, gameinstance, color)
 
