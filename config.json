@@ -5,7 +5,7 @@
         "displayflags": 0,
         "displaycolbit": 32,
         "font": "freesansbold.ttf",
-        "theme": 2
+        "theme": 0
     },
     "theme": {
         "0": {
@@ -68,12 +68,20 @@
             "first": {
                 "hull": "pics/tank/tank_1_b.png",
                 "weapon": "pics/tank/wapon_1_b.png",
-                "color": [32, 137, 235]
+                "color": [
+                    32,
+                    137,
+                    235
+                ]
             },
             "second": {
                 "hull": "pics/tank/tank_1_g.png",
                 "weapon": "pics/tank/wapon_1_g.png",
-                "color": [164, 226, 68]
+                "color": [
+                    164,
+                    226,
+                    68
+                ]
             }
         },
         "shell": {

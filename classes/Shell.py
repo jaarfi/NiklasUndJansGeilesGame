@@ -1,5 +1,6 @@
 from classes.Animation import *
 
+
 class Shell(MovablePhysicsObject):
     def __init__(self, polygon,gameinstance,vector,shellType, tank):
         color = pg.Color(255, 255, 255)
@@ -136,6 +137,7 @@ class Tank(MovablePhysicsObject):
         self.cannonTexture = pg.image.load(self.config.value.WeaponLocation.value)
         self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
         self.animations = []
+        self.playerNumber = playernumber
 
     def move(self, map):
         key = pg.key.get_pressed()
@@ -191,6 +193,8 @@ class Tank(MovablePhysicsObject):
 
     def hit(self, dmg):
         self.life = self.life - dmg
+        if self.life < 0:
+            Menu.victory(self.playerNumber)
 
     def draw(self, display):
         tmpCoords = (int(self.getCoords()[0]), int(self.getCoords()[1]))
