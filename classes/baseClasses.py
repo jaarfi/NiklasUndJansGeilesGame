@@ -350,36 +350,85 @@ class CollisionObject(DrawableObject):
         pass        #Als default wird bei einem Hit nichts gemacht
 
 class MovablePhysicsObject(CollisionObject):
+    '''
+    Ein MovablePhysicsObject besitzt einen Vektor, in wessen Richtung er sich bewegen kann
+
+    Diese Klasse Vererbt CollisionObject, da jedes Physics object kollidierbar ist.
+    Ein MovablePhysicsObject bietet die Möglichkeit das Object in Richtung eines Vektors zu bewegen
+    '''
     def __init__(self, polygon, gameinstance, directionalvector, speed, color=(0, 0, 0)):
+        '''
+        Initiator
+
+        :param polygon: ein shapely Polygon, welches die Umrandung des Objektes repräsentiert
+        :param gameinstance: ein object der Klasse Game, um es den Klassen zu ermöglichen, auf alle Parameter dessen zuzugreifen
+        :param directionalvector: ein Richtungsvektor, der die Bewegungsrichtung des Objektes repräsentiert
+        :param speed: Die Geschwindigkeit mit der sich das Objekt bewegt
+        :param color: eine Pygame Color, in welcher das Object gezeichnet wird, Standardwert = (0,0,0)
+        '''
         super().__init__(polygon, gameinstance, color)
-        self._normalizedDirectionalVector = directionalvector
-        self._normalizeVector()
+        self._normalizedDirectionalVector = directionalvector       #Der Vektor wird gespeichert..
+        self._normalizeVector()                                     #.. und danach Normalisiert
         self.speed = speed
 
     def normalizeVector(self, vector):
+        '''
+        Normalisieren eines Vektors (Die Länge des Vektors wird auf 1 gesetzt)
+
+        :param vector: zu normalisierender Vektor
+        :return: none
+        '''
         vectorLength = math.sqrt(vector[0] * vector[0] + vector[1] * vector[1])
         if vectorLength:
-            vector = [vector[0] / vectorLength, vector[1] / vectorLength]
+            vector = [vector[0] / vectorLength, vector[1] / vectorLength]           #Normalisieren, Mathe Kram halt
         return vector
 
     def _normalizeVector(self):
+        '''
+        Normalisieren des eigenen Vektors ohne Überabe und Rückgabe Parameter
+
+        :return: none
+        '''
         self._normalizedDirectionalVector = self.normalizeVector(self._normalizedDirectionalVector)
 
     def changeVectorTo(self, vector):
+        '''
+        Ändern des Vektors auf einen anderen
+
+        :param vector: neuer Vektor
+        :return: none
+        '''
         self._normalizedDirectionalVector = [vector[0], vector[1]]
         self._normalizeVector()
 
     def changeVectorBy(self, dx, dy):
+        '''
+        Ändern des Vektors um einen Offset
+
+        :param dx: Offset X-Achse
+        :param dy: Offset Y-Achse
+        :return: none
+        '''
         self._normalizedDirectionalVector = [self._normalizedDirectionalVector[0] + dx,
                                              self._normalizedDirectionalVector[1] + dy]
         self._normalizeVector()
 
     def physicsMoveNewPolygon(self):
+        '''
+        Rückgabe des Polygons, das es sein würde, wenn man PhysicsMove anwendet
+
+        :return: neues Polygon
+        '''
         denormalizedVector = [self._normalizedDirectionalVector[0] * self.speed,
                               self._normalizedDirectionalVector[1] * self.speed]
         return affinity.translate(self.polygon, denormalizedVector[0], denormalizedVector[1])
 
     def physicsMove(self):
+        '''
+        Object in Richtung des Vektors mit der Geschwindigkeit bewegen
+
+        :return: none
+        '''
         denormalizedVector = [self._normalizedDirectionalVector[0] * self.speed,
                               self._normalizedDirectionalVector[1] * self.speed]
         self.polygon = affinity.translate(self.polygon, denormalizedVector[0], denormalizedVector[1])
