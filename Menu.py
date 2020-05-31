@@ -421,6 +421,10 @@ music_set = True
 sound_set = True
 
 
+def victory(player):
+    return
+
+
 def menu():
     tytel = pygame.Rect(displaywidth / 2 - btn_big[0] / 2, displayheight / 2 - btn_big[1] / 2, btn_big[0], btn_big[1])
 

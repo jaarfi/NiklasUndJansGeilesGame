@@ -1,5 +1,6 @@
-import math, enum
+import math, enum, json
 import pygame as pg
+from pygame import gfxdraw
 from shapely import affinity
 import random
 from os import listdir
@@ -8,10 +9,15 @@ from shapely.geometry import Polygon, Point, LineString
 from pygame.locals import *
 import Menu
 
+with open('config.json', 'r') as c:
+    config = json.load(c)
+
+
 class shellStates(enum.Enum):
     IDLE = 1
     FLYING = 2
     EXPLODING = 3
+
 
 class playerControls(enum.Enum):
 
@@ -23,9 +29,9 @@ class playerControls(enum.Enum):
         CYCLE = pg.K_PERIOD
         FIRE = pg.K_COMMA
 
-        TextureLocation = "pics/tank/tank_1_b.png"
-        WeaponLocation = "pics/tank/wapon_1_b.png"
-        Color = pg.Color(32, 137, 235)
+        TextureLocation = config["pics"]["tank"]["first"]["hull"]
+        WeaponLocation = config["pics"]["tank"]["first"]["weapon"]
+        Color = tuple(config["pics"]["tank"]["first"]["color"])
 
     class SECOND(enum.Enum):
         RIGHT = pg.K_d
@@ -35,12 +41,12 @@ class playerControls(enum.Enum):
         CYCLE = pg.K_q
         FIRE = pg.K_e
 
-        TextureLocation = "pics/tank/tank_1_g.png"
-        WeaponLocation = "pics/tank/wapon_1_g.png"
-        Color = pg.Color(164,226,68)
+        TextureLocation = config["pics"]["tank"]["second"]["hull"]
+        WeaponLocation = config["pics"]["tank"]["second"]["weapon"]
+        Color = tuple(config["pics"]["tank"]["second"]["color"])
+
 
 class shellTypes(enum.Enum):
-
     class NORMAL(enum.Enum):
         SPEED = 30
         GRAVITY = 0.05
@@ -60,7 +66,7 @@ class shellTypes(enum.Enum):
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-        textureLocation = "pics/sprites/Medium_Shell.png"
+        textureLocation = config["pics"]["shell"]["normal"]
 
         EXPLOSIONSIZE = 0.7
         EXPLOSIONTIME = 1
@@ -78,13 +84,13 @@ class shellTypes(enum.Enum):
         TIMETILLSEEK = 0
         SEEKDISTANCE = 0
         SEEKINGGRAVITY = 0
-        POSTLOCKONSPEED= 0
+        POSTLOCKONSPEED = 0
         POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-        textureLocation = "pics/sprites/Sniper_Shell.png"
+        textureLocation = config["pics"]["shell"]["sniper"]
 
         EXPLOSIONSIZE = 1
         EXPLOSIONTIME = 1
@@ -102,13 +108,13 @@ class shellTypes(enum.Enum):
         TIMETILLSEEK = 0
         SEEKDISTANCE = 0
         SEEKINGGRAVITY = 0
-        POSTLOCKONSPEED= 0
+        POSTLOCKONSPEED = 0
         POSTLOCKONACCELERATION = 0
 
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-        textureLocation = "pics/sprites/Light_Shell.png"
+        textureLocation = config["pics"]["shell"]["machine gun"]
 
         EXPLOSIONSIZE = 0.2
         EXPLOSIONTIME = 0.5
@@ -132,7 +138,7 @@ class shellTypes(enum.Enum):
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-        textureLocation = "pics/sprites/Heavy_Shell.png"
+        textureLocation = config["pics"]["shell"]["gravitron"]
 
         EXPLOSIONSIZE = 0.8
         EXPLOSIONTIME = 1
@@ -156,7 +162,7 @@ class shellTypes(enum.Enum):
         NUMBEROFSHELLS = 1
         SPREAD = 0
 
-        textureLocation = "pics/sprites/Granade_Shell.png"
+        textureLocation = config["pics"]["shell"]["skymine"]
 
         EXPLOSIONSIZE = 0.7
         EXPLOSIONTIME = 1
@@ -178,7 +184,7 @@ class shellTypes(enum.Enum):
         NUMBEROFSHELLS = 5
         SPREAD = 10
 
-        textureLocation = "pics/sprites/Granade_Shell.png"
+        textureLocation = config["pics"]["shell"]["shotgun"]
 
         EXPLOSIONSIZE = 0.7
         EXPLOSIONTIME = 1
@@ -200,11 +206,10 @@ class shellTypes(enum.Enum):
         NUMBEROFSHELLS = 10
         SPREAD = 45
 
-        textureLocation = "pics/sprites/Light_Shell.png"
+        textureLocation = config["pics"]["shell"]["flak"]
 
         EXPLOSIONSIZE = 0.2
         EXPLOSIONTIME = 0.2
-
 
     def next(self):
         cls = self.__class__
@@ -214,8 +219,9 @@ class shellTypes(enum.Enum):
             index = 0
         return members[index]
 
+
 class DrawableObject(object):
-    def __init__(self, polygon, gameinstance, color=pg.Color(0,0,0)):
+    def __init__(self, polygon, gameinstance, color=(0, 0, 0)):
         self.gameInstance = gameinstance
         self.polygon = polygon
         self.internalFrame = 0
@@ -235,7 +241,7 @@ class DrawableObject(object):
         return int(list(self.polygon.centroid.coords)[0][0]), int(list(self.polygon.centroid.coords)[0][1])
 
     def moveTo(self, coords):
-        coordsDifference = (coords[0] - self.getCoords()[0], coords[1]- self.getCoords()[1])
+        coordsDifference = (coords[0] - self.getCoords()[0], coords[1] - self.getCoords()[1])
         self.polygon = affinity.translate(self.polygon, coordsDifference[0], coordsDifference[1])
 
     def moveBy(self, dx, dy):
@@ -246,12 +252,13 @@ class DrawableObject(object):
         self.rotateBy(degreediff, corner)
 
     def rotateBy(self, degree, corner):
-        self.polygon = affinity.rotate(self.polygon,degree, self.polygon.exterior.coords[corner])
+        self.polygon = affinity.rotate(self.polygon, degree, self.polygon.exterior.coords[corner])
         self.rotation += degree
         if self.rotation > 360:
             self.rotation -= 360
         if self.rotation < 0:
             self.rotation += 360
+
 
 class CollisionObject(DrawableObject):
     def colliding(self, PhysicsObject):
@@ -260,17 +267,18 @@ class CollisionObject(DrawableObject):
     def hit(self, dmg):
         pass
 
+
 class MovablePhysicsObject(CollisionObject):
-    def __init__(self, polygon, gameinstance, directionalvector, speed, color=pg.Color(0,0,0)):
-        super().__init__(polygon,gameinstance,color)
+    def __init__(self, polygon, gameinstance, directionalvector, speed, color=(0, 0, 0)):
+        super().__init__(polygon, gameinstance, color)
         self._normalizedDirectionalVector = directionalvector
         self._normalizeVector()
         self.speed = speed
 
     def normalizeVector(self, vector):
-        vectorLength = math.sqrt(vector[0]*vector[0] + vector[1]*vector[1])
+        vectorLength = math.sqrt(vector[0] * vector[0] + vector[1] * vector[1])
         if vectorLength:
-            vector = [vector[0]/vectorLength, vector[1]/vectorLength]
+            vector = [vector[0] / vectorLength, vector[1] / vectorLength]
         return vector
 
     def _normalizeVector(self):
@@ -281,14 +289,16 @@ class MovablePhysicsObject(CollisionObject):
         self._normalizeVector()
 
     def changeVectorBy(self, dx, dy):
-        self._normalizedDirectionalVector = [self._normalizedDirectionalVector[0] + dx, self._normalizedDirectionalVector[1] + dy]
+        self._normalizedDirectionalVector = [self._normalizedDirectionalVector[0] + dx,
+                                             self._normalizedDirectionalVector[1] + dy]
         self._normalizeVector()
 
     def physicsMoveNewPolygon(self):
-        denormalizedVector = [self._normalizedDirectionalVector[0]*self.speed, self._normalizedDirectionalVector[1]*self.speed]
+        denormalizedVector = [self._normalizedDirectionalVector[0] * self.speed,
+                              self._normalizedDirectionalVector[1] * self.speed]
         return affinity.translate(self.polygon, denormalizedVector[0], denormalizedVector[1])
 
     def physicsMove(self):
-        denormalizedVector = [self._normalizedDirectionalVector[0]*self.speed, self._normalizedDirectionalVector[1]*self.speed]
+        denormalizedVector = [self._normalizedDirectionalVector[0] * self.speed,
+                              self._normalizedDirectionalVector[1] * self.speed]
         self.polygon = affinity.translate(self.polygon, denormalizedVector[0], denormalizedVector[1])
-

@@ -2,7 +2,7 @@ from classes.Animation import *
 
 class Shell(MovablePhysicsObject):
     def __init__(self, polygon,gameinstance,vector,shellType, tank):
-        color = pg.Color(255,255,255)
+        color = pg.Color(255, 255, 255)
         self.shellType = shellType
         self.shellState = shellStates.FLYING
         self.collisionPolygon = polygon

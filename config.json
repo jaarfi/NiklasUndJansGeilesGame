@@ -62,5 +62,28 @@
                 96
             ]
         }
+    },
+    "pics": {
+        "tank": {
+            "first": {
+                "hull": "pics/tank/tank_1_b.png",
+                "weapon": "pics/tank/wapon_1_b.png",
+                "color": [32, 137, 235]
+            },
+            "second": {
+                "hull": "pics/tank/tank_1_g.png",
+                "weapon": "pics/tank/wapon_1_g.png",
+                "color": [164, 226, 68]
+            }
+        },
+        "shell": {
+            "normal": "pics/sprites/Medium_Shell.png",
+            "sniper": "pics/sprites/Sniper_Shell.png",
+            "machine gun": "pics/sprites/Light_Shell.png",
+            "gravitron": "pics/sprites/Heavy_Shell.png",
+            "skymine": "pics/sprites/Granade_Shell.png",
+            "shotgun": "pics/sprites/Granade_Shell.png",
+            "flak": "pics/sprites/Light_Shell.png"
+        }
     }
 }
