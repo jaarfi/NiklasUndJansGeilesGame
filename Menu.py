@@ -6,6 +6,8 @@ import json
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 
+pygame.init()
+
 with open('config.json', 'r') as c:
     config = json.load(c)
 
@@ -14,7 +16,8 @@ displayheight = config["settings"]["displayheight"]
 displayflags = config["settings"]["displayflags"]
 displaycolbit = config["settings"]["displaycolbit"]
 
-screen = pg.display.set_mode((displaywidth, displayheight), displayflags, displaycolbit)
+screen = pygame.display.set_mode((displaywidth, displayheight), displayflags, displaycolbit)
+pygame.display.set_caption("NiklasUndJansGeilesGame")
 
 half_w = int(displaywidth / 2)
 half_h = int(displayheight / 2)
@@ -26,11 +29,15 @@ btn_cu = displayheight / 15, displayheight / 15, 2
 
 shadow = displayheight * 0.0075
 
-pygame.init()
 
 # screen = pygame.display.set_mode((displaywidth, displayheight), 0, 32)
 
 clock = pygame.time.Clock()
+
+back_sound = pygame.mixer.music.load("sound/music.wav.mid")
+music_set = True
+if music_set:
+    pygame.mixer.music.play(-1)
 
 
 def get_all_theme():
@@ -369,8 +376,10 @@ def setting(m=0):
                 if mus_btn:
                     if music_set:
                         music_set = False
+                        pygame.mixer.music.stop()
                     else:
                         music_set = True
+                        pygame.mixer.music.play(-1)
                 elif sou_btn:
                     if sound_set:
                         sound_set = False
@@ -417,7 +426,6 @@ def game_start():
 
 
 # ________________MENU________________
-music_set = True
 sound_set = True
 
 

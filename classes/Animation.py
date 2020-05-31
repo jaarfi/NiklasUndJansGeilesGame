@@ -16,6 +16,7 @@ for myfile in only_files2:
     if "Smoke" in myfile:
         dust.append(pg.image.load("pics/sprites/" + myfile))
 
+
 class Animation(CollisionObject):
     def __init__(self, polygon, gameinstance, sprites, duration, size, callerArray):
         super().__init__(polygon,gameinstance)
@@ -26,11 +27,15 @@ class Animation(CollisionObject):
 
         self.sprites = newSprites
         self.callerArray = callerArray
+
+
     def draw(self, display):
         if math.floor(self.internalFrame/self.duration*len(self.sprites)) >= len(self.sprites):
             if self in self.callerArray:
                 self.callerArray.remove(self)
             return True
-        display.blit(self.sprites[math.floor(self.internalFrame/self.duration*len(self.sprites))], (self.getCoords()[0] - self.sprites[0].get_width()/2, self.getCoords()[1] - self.sprites[0].get_height()/2))
+        display.blit(self.sprites[math.floor(self.internalFrame/self.duration*len(self.sprites))],
+                     (self.getCoords()[0] - self.sprites[0].get_width()/2,
+                      self.getCoords()[1] - self.sprites[0].get_height()/2))
         self.advanceFrameCounter()
         return False
