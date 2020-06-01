@@ -1,7 +1,3 @@
-#Drive Sound: "Sound effects obtained from https://www.zapsplat.com"
-#Fire Sound: "Sound effects obtained from https://www.zapsplat.com"
-#Explosion Sound: "Sound effects obtained from https://www.zapsplat.com"
-
 import json
 from classes.Animation import *
 
