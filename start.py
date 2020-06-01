@@ -3,7 +3,7 @@ from Menu import menu
 
 def start():
     """
-    __author__: Jan Arendt and Niklas Ponzer
+    __author__: Jan Arendt(7297944) and Niklas Ponzer(4467584)
     __version__: 1.0.0
 
     python_version: 3.7
