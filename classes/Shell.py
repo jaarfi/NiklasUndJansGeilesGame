@@ -2,7 +2,12 @@
 #Fire Sound: "Sound effects obtained from https://www.zapsplat.com"
 #Explosion Sound: "Sound effects obtained from https://www.zapsplat.com"
 
+import json
 from classes.Animation import *
+
+with open('config.json', 'r') as c:
+    config = json.load(c)
+
 
 class Shell(MovablePhysicsObject):
     def __init__(self, polygon,gameinstance,vector,shellType, tank):
@@ -21,7 +26,7 @@ class Shell(MovablePhysicsObject):
         self.basetexture = pg.image.load(self.shellType.value.textureLocation.value)
         self.texture = self.basetexture
         self.rotation = math.degrees(math.asin(self._normalizedDirectionalVector[0]))
-        self.ex_sound = pg.mixer.Sound("sound/explosion.wav")
+        self.ex_sound = pg.mixer.Sound(config["sound/explosion.wav"])
 
     def move(self):
         if self.shellState == shellStates.FLYING:
@@ -145,8 +150,8 @@ class Tank(MovablePhysicsObject):
         self.cannonTexture = pg.image.load(self.config.value.WeaponLocation.value)
         self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
         self.animations = []
-        self.soundFire = pg.mixer.Sound("sound/shoot.wav")
-        self.soundDrive = pg.mixer.Sound("sound/drive_sound.wav")
+        self.soundFire = pg.mixer.Sound(config["sound"]["shoot"])
+        self.soundDrive = pg.mixer.Sound(config["sound"]["drive"])
         self.drive = False
 
     def move(self, map):
