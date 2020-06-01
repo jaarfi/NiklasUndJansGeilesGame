@@ -378,6 +378,10 @@ class MovablePhysicsObject(CollisionObject):
         :param vector: zu normalisierender Vektor
         :return: none
         '''
+
+        #TESTING: Diese Funktion kann getestet werden, indem man verschiedene Testfälle unterschiedliche Vektoren angibt
+        # Hier muss getestet werden, wie die Funktion mit schlecht geformten Vektoren oder Vektoren mit Länge 0 umgeht
+
         vectorLength = math.sqrt(vector[0] * vector[0] + vector[1] * vector[1])
         if vectorLength:
             vector = [vector[0] / vectorLength, vector[1] / vectorLength]           #Normalisieren, Mathe Kram halt

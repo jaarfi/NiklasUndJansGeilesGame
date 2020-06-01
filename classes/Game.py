@@ -1,4 +1,4 @@
-from classes.Shell import *
+from classes.ShellAndTank import *
 
 class Game(object):
     '''
@@ -72,18 +72,26 @@ class Game(object):
 
         :param width: Breite der Map
         :param height: Höhe der Map
-        :return: die Map als Polygon
+        :return: die Map als Polygon, False wenn falsche Werte gegeben wurden
         '''
-        map = [(0, height)]
-        spacing = 4
-        newpoint = (0,random.randint(int(height / 2),int(height * 4 / 6)))                  #Die Map wird immer zufällig erstellt
-        for i in range(0, spacing + 1):
-            newpoint = (int(i * width / spacing), newpoint[1] + random.randint(-50, 50))    #Die Punkte müssen in einem gewissen Rahmen sein
-            while int(height / 2) < newpoint[1] < int(height * 4 / 6):
-                newpoint = (int(i * width / spacing), newpoint[1] + random.randint(-50, 50))
-            map.append(newpoint)
-        map.append((width, height))
-        return map
+        #TESTING: Diese Funktion kann getestet werden, indem man verschiedene Testfälle mit unterschiedlichen Werten als width und height angibt
+        # Dies können negative Werte sein, aber auch beispielsweise andere Objekte oder Strings um zu überprüfen, ob das Programm hierdurch abstürzen würde
+
+
+        height = int(height)
+        width = int(width)
+        if width > 0 and height > 0:
+            map = [(0, height)]
+            spacing = 4
+            newpoint = (0,random.randint(int(height / 2),int(height * 4 / 6)))                  #Die Map wird immer zufällig erstellt
+            for i in range(0, spacing + 1):
+                newpoint = (int(i * width / spacing), newpoint[1] + random.randint(-50, 50))    #Die Punkte müssen in einem gewissen Rahmen sein
+                while int(height / 2) < newpoint[1] < int(height * 4 / 6):
+                    newpoint = (int(i * width / spacing), newpoint[1] + random.randint(-50, 50))
+                map.append(newpoint)
+            map.append((width, height))
+            return map
+        return False
 
 
 class Map(CollisionObject):
