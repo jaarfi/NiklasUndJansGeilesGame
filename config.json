@@ -102,7 +102,7 @@
     "music": {
         "trash": "sound/music.wav.mid",
         "epic": "sound/music_epic.mp3",
-        "normal": "sound/music_epic.mp3",
+        "normal": "sound/music_so_halb_epic.mp3",
         "impact": "sound/impact.mp3"
     }
 }

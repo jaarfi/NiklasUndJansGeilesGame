@@ -230,6 +230,7 @@ class Tank(MovablePhysicsObject):
         self.life = self.life - dmg
         if self.life < 0:
             self.animations.append(Animation(self.polygon, self.gameInstance, expl, 1,5, self.animations))
+            self.soundDrive.stop()
             Menu.victory(self.playerNumber)
 
     def draw(self, display):
