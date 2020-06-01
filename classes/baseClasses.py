@@ -123,7 +123,7 @@ class shellTypes(enum.Enum):    #Jede Art von Waffe hat ihre eigene Klasse in di
         SPEED = 10
         GRAVITY = 0.05
         DAMAGE = 12
-        RELOAD = 1
+        RELOAD = 3
         SIZE = 10
 
         SEEKING = True
@@ -193,7 +193,7 @@ class shellTypes(enum.Enum):    #Jede Art von Waffe hat ihre eigene Klasse in di
         SPEED = 30
         GRAVITY = 0
         DAMAGE = 0
-        RELOAD = 2
+        RELOAD = 0.5
         SIZE = 2
 
         SEEKING = False
