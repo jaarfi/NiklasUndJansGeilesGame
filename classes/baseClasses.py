@@ -99,7 +99,7 @@ class shellTypes(enum.Enum):    #Jede Art von Waffe hat ihre eigene Klasse in di
         SPEED = 100
         GRAVITY = 0
         DAMAGE = 3
-        RELOAD = 0.02
+        RELOAD = 0.1
         SIZE = 2
 
         SEEKING = False
