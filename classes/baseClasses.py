@@ -99,7 +99,7 @@ class shellTypes(enum.Enum):    #Jede Art von Waffe hat ihre eigene Klasse in di
         SPEED = 100
         GRAVITY = 0
         DAMAGE = 3
-        RELOAD = 0.02
+        RELOAD = 0.1
         SIZE = 2
 
         SEEKING = False
@@ -378,6 +378,10 @@ class MovablePhysicsObject(CollisionObject):
         :param vector: zu normalisierender Vektor
         :return: none
         '''
+
+        #TESTING: Diese Funktion kann getestet werden, indem man verschiedene Testfälle unterschiedliche Vektoren angibt
+        # Hier muss getestet werden, wie die Funktion mit schlecht geformten Vektoren oder Vektoren mit Länge 0 umgeht
+
         vectorLength = math.sqrt(vector[0] * vector[0] + vector[1] * vector[1])
         if vectorLength:
             vector = [vector[0] / vectorLength, vector[1] / vectorLength]           #Normalisieren, Mathe Kram halt
