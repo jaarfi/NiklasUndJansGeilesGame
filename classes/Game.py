@@ -57,6 +57,8 @@ class Game(object):
                     quit()
                 if event.type == KEYUP:                 #Wenn Escapegedrückt wird wird das Optionen Fenster geöffnet
                     if event.key == K_ESCAPE:
+                        for player in self.players:
+                            player.soundDrive.stop()
                         Menu.pause_menu()
             self.display.fill(self.colorScheme[0])      #Den Hintergrund zeichnen
 
