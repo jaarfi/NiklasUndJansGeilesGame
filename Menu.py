@@ -27,6 +27,10 @@ btn_mid = displaywidth / 5, displayheight / 15, 2
 btn_small = displaywidth / 8, displayheight / 15, 2
 btn_cu = displayheight / 15, displayheight / 15, 2
 
+txt_n = int(displayheight / 30)
+txt_m = int(displayheight / 20)
+txt_t = int(displayheight / 13)
+
 clock = pygame.time.Clock()
 
 back_sound = pygame.mixer.music.load("sound/music.wav.mid")
@@ -277,9 +281,9 @@ def pause_menu():
 
     esc = CubicButton((pause.left + btn_cu[0] / 2, pause.top + btn_cu[1] / 2), bigx[0])
     settings = CubicButton((pause.right - btn_cu[0] * 1.5, pause.top + btn_cu[1] / 2), sett[1])
-    ex = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 4.5), (20, "quit"))
-    re = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 3), (20, "restart"))
-    res = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 1.5), (20, "resume"))
+    ex = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 4.5), (txt_n, "quit"))
+    re = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 3), (txt_n, "restart"))
+    res = MedButton((pause.left + pause.width / 2 - btn_mid[0] / 2, pause.bottom - btn_mid[1] * 1.5), (txt_n, "resume"))
 
     while True:
         draw_panel(pause)
@@ -292,7 +296,7 @@ def pause_menu():
         re_btn = re.draw_button(mouse_pos, theme[::-1])
         res_btn = res.draw_button(mouse_pos, theme[::-1])
 
-        draw_text(32, tytel, "Pause", theme[::-1][0])
+        draw_text(txt_m, tytel, "Pause", theme[::-1][0])
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -388,7 +392,7 @@ def tutorial():
                                             displayheight/2-tutorialSheets[sheet].get_height()/2))
 
         # tytel text
-        draw_text(32, tytel, "Tutorial", theme[0])
+        draw_text(txt_m, tytel, "Tutorial", theme[0])
 
         pygame.display.flip()
         clock.tick(60)
@@ -468,12 +472,12 @@ def setting(m=0):
         sou_btn = sound_sym.draw_button(mouse_pos, theme[::-1])
         esc_btn = esc.draw_button(mouse_pos, theme[::-1])
 
-        draw_text(32, tytel, "Settings", theme[::-1][0])
-        draw_text(20, music_txt, "music", theme[::-1][0])
-        draw_text(20, sound_txt, "sound", theme[::-1][0])
+        draw_text(txt_m, tytel, "Settings", theme[::-1][0])
+        draw_text(txt_n, music_txt, "music", theme[::-1][0])
+        draw_text(txt_n, sound_txt, "sound", theme[::-1][0])
 
         if m:
-            draw_text(20, theme_txt, "theme", theme[::-1][0])
+            draw_text(txt_n, theme_txt, "theme", theme[::-1][0])
             theme_btn = []
             i = 0
             for a in btn:
@@ -522,7 +526,7 @@ def setting(m=0):
         clock.tick(60)
 
 
-def text_objects(font=(config["settings"]["font"], 12), text="", color=theme[0]):
+def text_objects(font=(config["settings"]["font"], txt_n), text="", color=theme[0]):
     text_surface = font.render(text, True, color)
     return text_surface, text_surface.get_rect()
 
@@ -547,7 +551,7 @@ def game_start():
     :desc: erzeugt eine neue Runde des Spiels
     :return: None
     """
-    game = Game(displaywidth, displayheight, screen, pygame.font.SysFont(config["settings"]["font"], 30), theme)
+    game = Game(displaywidth, displayheight, screen, pygame.font.SysFont(config["settings"]["font"], txt_n), theme)
     game.startGame()
 
 
@@ -584,7 +588,7 @@ def victory(player):
         ex_btn = ex.draw_button(mouse_pos, theme[::-1])
         re_btn = re.draw_button(mouse_pos, theme[::-1])
 
-        draw_text(32, tytel, winner, theme[::-1][0])
+        draw_text(txt_m, tytel, winner, theme[::-1][0])
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -620,8 +624,8 @@ def menu():
     """
     tytel = pygame.Rect(displaywidth / 2 - btn_big[0] / 2, displayheight / 2 - btn_big[1] / 2, btn_big[0], btn_big[1])
 
-    start = BigButton((displaywidth / 2 - btn_big[0] / 2, displayheight / 2 + btn_big[1] * 1.5), (20, "start"))
-    tutor = MedButton((displaywidth / 2 - btn_mid[0] / 2, displayheight / 2 + btn_big[1] * 3), (20, "tutorial"))
+    start = BigButton((displaywidth / 2 - btn_big[0] / 2, displayheight / 2 + btn_big[1] * 1.5), (txt_n, "start"))
+    tutor = MedButton((displaywidth / 2 - btn_mid[0] / 2, displayheight / 2 + btn_big[1] * 3), (txt_n, "tutorial"))
     settings = CubicButton((displaywidth - btn_cu[0] * 1.5, btn_cu[0] / 2), sett[1])
 
     while True:
@@ -639,7 +643,7 @@ def menu():
         tut_act = tutor.draw_button(mouse_pos, theme)
         set_act = settings.draw_button(mouse_pos, theme[::-1])
 
-        draw_text(45, tytel, "NiklasUndJansGeilesGame", theme[2])
+        draw_text(txt_t, tytel, "NiklasUndJansGeilesGame", theme[2])
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
