@@ -5,6 +5,7 @@
 import json
 from classes.Animation import *
 
+
 with open('config.json', 'r') as c:
     config = json.load(c)
 
@@ -153,6 +154,7 @@ class Tank(MovablePhysicsObject):
         self.soundFire = pg.mixer.Sound(config["sound"]["shoot"])
         self.soundDrive = pg.mixer.Sound(config["sound"]["drive"])
         self.drive = False
+        self.playerNumber = playernumber
 
     def move(self, map):
         self.drive = False
@@ -226,6 +228,9 @@ class Tank(MovablePhysicsObject):
 
     def hit(self, dmg):
         self.life = self.life - dmg
+        if self.life < 0:
+            self.animations.append(Animation(self.polygon, self.gameInstance, expl, 1,5, self.animations))
+            Menu.victory(self.playerNumber)
 
     def draw(self, display):
         tmpCoords = (int(self.getCoords()[0]), int(self.getCoords()[1]))
