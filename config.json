@@ -93,5 +93,16 @@
             "shotgun": "pics/sprites/Granade_Shell.png",
             "flak": "pics/sprites/Light_Shell.png"
         }
+    },
+    "sound": {
+        "drive": "sound/drive_sound.wav",
+        "explosion": "sound/explosion.wav",
+        "shoot": "sound/shoot.wav"
+    },
+    "music": {
+        "trash": "sound/music.wav.mid",
+        "epic": "sound/music_epic.mp3",
+        "normal": "sound/music_epic.mp3",
+        "impact": "sound/impact.mp3"
     }
 }

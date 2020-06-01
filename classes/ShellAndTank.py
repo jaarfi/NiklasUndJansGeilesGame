@@ -2,7 +2,12 @@
 #Fire Sound: "Sound effects obtained from https://www.zapsplat.com"
 #Explosion Sound: "Sound effects obtained from https://www.zapsplat.com"
 
+import json
 from classes.Animation import *
+
+
+with open('config.json', 'r') as c:
+    config = json.load(c)
 
 
 class Shell(MovablePhysicsObject):
@@ -34,8 +39,8 @@ class Shell(MovablePhysicsObject):
         self.gameInstance.collisionObjects.append(self)         #Die Shell fügt sich zu dem collisionObject array hinzu, damit alles mit dieser shell kollidieren kann
         self.basetexture = pg.image.load(self.shellType.value.textureLocation.value)
         self.texture = self.basetexture
-        self.rotation = math.degrees(math.asin(self._normalizedDirectionalVector[0]))       #Die Rotation der Shell lässt sich mit dem Vektor berechnen
-        self.ex_sound = pg.mixer.Sound("sound/explosion.wav")
+        self.rotation = math.degrees(math.asin(self._normalizedDirectionalVector[0]))
+        self.ex_sound = pg.mixer.Sound(config["sound"]["explosion"])
 
     def move(self):
         '''
@@ -203,8 +208,8 @@ class Tank(MovablePhysicsObject):
         self.cannonTexture = pg.image.load(self.config.value.WeaponLocation.value)
         self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
         self.animations = []
-        self.soundFire = pg.mixer.Sound("sound/shoot.wav")
-        self.soundDrive = pg.mixer.Sound("sound/drive_sound.wav")
+        self.soundFire = pg.mixer.Sound(config["sound"]["shoot"])
+        self.soundDrive = pg.mixer.Sound(config["sound"]["drive"])
         self.drive = False
         self.playerNumber = playernumber
 
