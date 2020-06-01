@@ -36,7 +36,6 @@ class Game(object):
     def startGame(self):
         '''
         Das Spiel starten.
-
         :return: none
         '''
         self.collisionObjects = []

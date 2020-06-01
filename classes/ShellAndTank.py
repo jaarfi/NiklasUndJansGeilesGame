@@ -304,6 +304,7 @@ class Tank(MovablePhysicsObject):
         '''
         self.life = self.life - dmg
         if self.life < 0:
+            self.soundDrive.stop()
             Menu.victory(self.playerNumber)
 
     def draw(self, display):
