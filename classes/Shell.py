@@ -27,7 +27,7 @@ class Shell(MovablePhysicsObject):
         self.basetexture = pg.image.load(self.shellType.value.textureLocation.value)
         self.texture = self.basetexture
         self.rotation = math.degrees(math.asin(self._normalizedDirectionalVector[0]))
-        self.ex_sound = pg.mixer.Sound(config["sound/explosion.wav"])
+        self.ex_sound = pg.mixer.Sound(config["sound"]["explosion"])
 
     def move(self):
         if self.shellState == shellStates.FLYING:

@@ -33,7 +33,8 @@ txt_t = int(displayheight / 13)
 
 clock = pygame.time.Clock()
 
-back_sound = pygame.mixer.music.load("sound/music.wav.mid")
+back_sound = pygame.mixer.music.load(config["music"]["epic"])
+pygame.mixer.music.set_volume(0.1)
 music_set = True
 if music_set:
     pygame.mixer.music.play(-1)
