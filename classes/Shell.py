@@ -1,3 +1,7 @@
+#Drive Sound: "Sound effects obtained from https://www.zapsplat.com"
+#Fire Sound: "Sound effects obtained from https://www.zapsplat.com"
+#Explosion Sound: "Sound effects obtained from https://www.zapsplat.com"
+
 from classes.Animation import *
 
 
@@ -18,6 +22,7 @@ class Shell(MovablePhysicsObject):
         self.basetexture = pg.image.load(self.shellType.value.textureLocation.value)
         self.texture = self.basetexture
         self.rotation = math.degrees(math.asin(self._normalizedDirectionalVector[0]))
+        self.ex_sound = pg.mixer.Sound("sound/explosion.wav")
 
     def move(self):
         if self.shellState == shellStates.FLYING:
@@ -35,10 +40,10 @@ class Shell(MovablePhysicsObject):
                             seekedPlayer = player
                             vectorToSeekedPlayer = vectorToPlayer
                 if seekedPlayer != 0:
-                    self.color = Color(222, 23, 56)
+                    self.color = (222, 23, 56)
                     self.speed = self.shellType.value.POSTLOCKONSPEED.value
                     vectorToSeekedPlayer = self.normalizeVector(vectorToSeekedPlayer)
-                    self.changeVectorBy(-vectorToSeekedPlayer[0]*self.shellType.value.POSTLOCKONSPEED.value*0.2,-vectorToSeekedPlayer[1]*self.shellType.value.POSTLOCKONSPEED.value*0.2)
+                    self.changeVectorBy(-vectorToSeekedPlayer[0]*self.shellType.value.POSTLOCKONSPEED.value*0.2, -vectorToSeekedPlayer[1]*self.shellType.value.POSTLOCKONSPEED.value*0.2)
                     self.speed += self.shellType.value.POSTLOCKONACCELERATION.value
 
             self.physicsMove()
@@ -50,7 +55,7 @@ class Shell(MovablePhysicsObject):
                 self.texture = pg.transform.rotate(self.basetexture, -self.rotation)
             newCoords = self.getCoords()
             self.collisionPolygon = Polygon([
-                (oldCoords[0],oldCoords[1]),
+                (oldCoords[0], oldCoords[1]),
                 (oldCoords[0]+self.shellType.value.SIZE.value, oldCoords[1]+self.shellType.value.SIZE.value),
                 (newCoords[0]+self.shellType.value.SIZE.value, newCoords[1]+self.shellType.value.SIZE.value),
                 (newCoords[0], newCoords[1])])
@@ -94,7 +99,11 @@ class Shell(MovablePhysicsObject):
                 self.safedelete()
 
     def explode(self, poly):
-        self.explosions.append(Animation(poly, self.gameInstance, expl, self.shellType.value.EXPLOSIONTIME.value, self.shellType.value.EXPLOSIONSIZE.value, self.explosions))
+        if Menu.sound_set:
+            self.ex_sound.set_volume(0.2)
+            self.ex_sound.play()
+        self.explosions.append(Animation(poly, self.gameInstance, expl, self.shellType.value.EXPLOSIONTIME.value,
+                                         self.shellType.value.EXPLOSIONSIZE.value, self.explosions))
         self.shellState = shellStates.EXPLODING
 
     def safedelete(self):
@@ -137,18 +146,36 @@ class Tank(MovablePhysicsObject):
         self.cannonTexture = pg.image.load(self.config.value.WeaponLocation.value)
         self.cannonTexture = pg.transform.scale(self.cannonTexture,(int(self.texture.get_width() * 3 / 2), int(self.texture.get_width() * 3 / 2)))
         self.animations = []
+        self.soundFire = pg.mixer.Sound("sound/shoot.wav")
+        self.soundDrive = pg.mixer.Sound("sound/drive_sound.wav")
+        self.drive = False
         self.playerNumber = playernumber
 
     def move(self, map):
+        self.drive = False
         key = pg.key.get_pressed()
         if key[self.config.value.LEFT.value]:
             self.changeVectorBy(-0.02, 0)
             self.speed = 3
             self.groundedCorner = 2
+
+            if Menu.sound_set:
+                self.drive = True
+
         elif key[self.config.value.RIGHT.value]:
             self.changeVectorBy(0.02, 0)
             self.speed = 3
             self.groundedCorner = 1
+
+            if Menu.sound_set:
+               self.drive = True
+
+        if self.drive:
+            self.soundDrive.set_volume(0.1)
+            self.soundDrive.play(-1)
+        else:
+            self.soundDrive.stop()
+
         if key[self.config.value.UP.value]:
             self.angle += 1
         if key[self.config.value.DOWN.value]:
@@ -165,7 +192,7 @@ class Tank(MovablePhysicsObject):
             shell.move()
         self.firingVector = [math.cos(math.radians(self.angle))*75, math.sin(math.radians(self.angle))*75]
         self.rotateToGround(map, self.groundedCorner,self.speed)
-        self.changeVectorTo([0,0])
+        self.changeVectorTo([0, 0])
         self.speed = 0
         if key[self.config.value.FIRE.value]:
             self.fireShell()
@@ -175,6 +202,10 @@ class Tank(MovablePhysicsObject):
     def fireShell(self):
         if self.timeToLoad <= 0:
             tmpCoords = self.getCoords()
+            if Menu.sound_set:
+                self.soundFire.set_volume(0.4)
+                self.soundFire.play()
+
             if self.currentlySelectedShell.value.NUMBEROFSHELLS.value > 1:
                 self.angle -= self.currentlySelectedShell.value.SPREAD.value/2
                 for i in range(0,self.currentlySelectedShell.value.NUMBEROFSHELLS.value):
@@ -184,7 +215,6 @@ class Tank(MovablePhysicsObject):
                     self.shells.append(Shell(shellPolygon, self.gameInstance, self.firingVector, self.currentlySelectedShell, self))
                 self.angle -= self.currentlySelectedShell.value.SPREAD.value/2
             else:
-
                 shellPolygon = Polygon([(tmpCoords[0], tmpCoords[1] + 5), (tmpCoords[0] + 5, tmpCoords[1] + 5),
                                         (tmpCoords[0] + 5, tmpCoords[1]), (tmpCoords[0], tmpCoords[1])])
                 self.shells.append( Shell(shellPolygon, self.gameInstance, self.firingVector, self.currentlySelectedShell, self))

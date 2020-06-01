@@ -21,6 +21,8 @@
       <option name="ignoredIdentifiers">
         <list>
           <option value="tuple.__sub__" />
+          <option value="bool.play" />
+          <option value="bool.stop" />
         </list>
       </option>
     </inspection_tool>

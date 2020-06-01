@@ -16,6 +16,7 @@ for myfile in only_files2:
     if "Smoke" in myfile:
         dust.append(pg.image.load("pics/sprites/" + myfile))
 
+
 class Animation(CollisionObject):
     '''
     Eine Klasse um Animationen zu spawnen und (halbwegs) unabhängig von den Callern zu machen
@@ -40,6 +41,8 @@ class Animation(CollisionObject):
             newSprites.append(pg.transform.scale(sprite,(int(sprite.get_width() * size), int(sprite.get_width() * size)))) #Die Sprites werden in die korrekte Größe skaliert
         self.sprites = newSprites
         self.callerArray = callerArray
+
+
     def draw(self, display):
         '''
         Zeichenfunktion der Animation
@@ -51,6 +54,8 @@ class Animation(CollisionObject):
             if self in self.callerArray:
                 self.callerArray.remove(self)
             return True
-        display.blit(self.sprites[math.floor(self.internalFrame/self.duration*len(self.sprites))], (self.getCoords()[0] - self.sprites[0].get_width()/2, self.getCoords()[1] - self.sprites[0].get_height()/2))
+        display.blit(self.sprites[math.floor(self.internalFrame/self.duration*len(self.sprites))],
+                     (self.getCoords()[0] - self.sprites[0].get_width()/2,
+                      self.getCoords()[1] - self.sprites[0].get_height()/2))
         self.advanceFrameCounter()
         return False
