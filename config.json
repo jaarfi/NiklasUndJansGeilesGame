@@ -1,7 +1,7 @@
 {
     "settings": {
-        "displaywidth": 1500,
-        "displayheight": 900,
+        "displaywidth": 1280,
+        "displayheight": 720,
         "displayflags": 0,
         "displaycolbit": 32,
         "font": "freesansbold.ttf",

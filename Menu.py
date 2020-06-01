@@ -552,7 +552,7 @@ def game_start():
     :desc: erzeugt eine neue Runde des Spiels
     :return: None
     """
-    game = Game(displaywidth, displayheight, screen, pygame.font.SysFont(config["settings"]["font"], txt_n), theme)
+    game = Game(displaywidth, displayheight, screen, pygame.font.SysFont(config["settings"]["font"], txt_m), theme)
     game.startGame()
 
 

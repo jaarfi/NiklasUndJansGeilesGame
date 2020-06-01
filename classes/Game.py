@@ -1,5 +1,6 @@
 from classes.ShellAndTank import *
 
+
 class Game(object):
     '''
     Eine Klasse für das Spiel
